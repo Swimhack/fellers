@@ -10,8 +10,9 @@ import {
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-// These will be replaced with the actual truck images uploaded to the project
+// Added the uploaded tow truck image as the first item in the gallery
 const galleryImages = [
+  "/lovable-uploads/87ba276a-1d9f-4e50-b096-524af87702c9.png",
   "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
   "https://images.unsplash.com/photo-1591768793355-74d04bb6608f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
   "https://images.unsplash.com/photo-1581222666174-a767898328fc?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
