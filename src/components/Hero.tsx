@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-// Updated with actual image
+// Updated with new truck image as first image
 const backgroundImages = [
-  "/lovable-uploads/eec8e3aa-b1ac-4cfb-9933-01465e9373e9.png",
+  "/lovable-uploads/046e5f95-7772-4564-888a-5026ab430faf.png",
   "https://images.unsplash.com/photo-1591768793355-74d04bb6608f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
   "https://images.unsplash.com/photo-1581222666174-a767898328fc?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
 ];
