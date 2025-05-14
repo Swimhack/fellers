@@ -8,44 +8,61 @@
 
 html {
   scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent; /* Removes tap highlight color on mobile devices */
 }
 
 body {
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased; /* Smoother text rendering on mobile */
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
+/* Add bottom padding to ensure content is not hidden behind mobile bottom bar */
+@media (max-width: 767px) {
+  body {
+    padding-bottom: 60px;
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* Optimize performance on mobile */
+.optimize-mobile {
+  -webkit-transform: translateZ(0);
+  -moz-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translateZ(0);
+  will-change: transform; /* Helps with mobile performance */
 }
 
-.card {
-  padding: 2em;
+/* Add active states for mobile */
+.mobile-touch-feedback:active {
+  background-color: rgba(0, 0, 0, 0.1);
 }
 
-.read-the-docs {
-  color: #888;
+/* Fix issues with position:fixed elements on iOS */
+.ios-fixed-fix {
+  position: fixed;
+  width: 100%;
+  transform: translateZ(0);
+}
+
+/* Prevent text size adjustment on orientation change in iOS */
+html {
+  -webkit-text-size-adjust: 100%; 
+}
+
+/* Make images not larger than their container */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Focus styles for accessibility */
+:focus {
+  outline: 2px solid #39FF14;
+  outline-offset: 2px;
+}
+
+/* Add transition to all interactive elements */
+a, button {
+  transition: all 0.2s ease;
 }

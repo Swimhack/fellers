@@ -21,19 +21,19 @@ const ServicesGrid = () => {
   return (
     <section id="services" className="section-padding bg-fellers-charcoal">
       <div className="container mx-auto">
-        <h2 className="text-3xl md:text-4xl text-center mb-12 text-fellers-white">OUR SERVICES</h2>
+        <h2 className="text-2xl sm:text-3xl md:text-4xl text-center mb-8 md:mb-12 text-fellers-white">OUR SERVICES</h2>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
           {services.map((service, index) => (
             <div 
               key={index}
-              className="border-2 border-fellers-green/50 rounded-lg p-6 flex flex-col items-center hover:border-fellers-green hover:bg-black/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_15px_rgba(57,255,20,0.15)]"
+              className="border-2 border-fellers-green/50 rounded-lg p-3 sm:p-4 md:p-6 flex flex-col items-center hover:border-fellers-green hover:bg-black/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_15px_rgba(57,255,20,0.15)] active:bg-black/30"
               style={{ animationDelay: `${index * 50}ms` }}
             >
-              <div className="text-fellers-green mb-4">
-                {React.cloneElement(service.icon, { size: 40 })}
+              <div className="text-fellers-green mb-2 md:mb-4">
+                {React.cloneElement(service.icon, { size: 32 })}
               </div>
-              <h3 className="text-center text-fellers-white font-semibold">{service.name}</h3>
+              <h3 className="text-center text-fellers-white text-sm sm:text-base font-semibold">{service.name}</h3>
             </div>
           ))}
         </div>

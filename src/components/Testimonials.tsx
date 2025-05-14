@@ -34,7 +34,7 @@ const Testimonials = () => {
   return (
     <section className="section-padding bg-black/50">
       <div className="container mx-auto">
-        <h2 className="text-3xl md:text-4xl text-center mb-12 text-fellers-white">WHAT OUR CLIENTS SAY</h2>
+        <h2 className="text-2xl sm:text-3xl md:text-4xl text-center mb-8 md:mb-12 text-fellers-white">WHAT OUR CLIENTS SAY</h2>
         
         <Carousel
           opts={{
@@ -45,30 +45,30 @@ const Testimonials = () => {
         >
           <CarouselContent>
             {testimonials.map((testimonial, index) => (
-              <CarouselItem key={index} className="md:basis-4/5 lg:basis-3/4">
-                <div className="p-4 h-full">
-                  <div className="bg-black/40 backdrop-blur-sm p-8 rounded-lg border border-fellers-green/30 h-full flex flex-col">
+              <CarouselItem key={index} className="basis-full md:basis-4/5 lg:basis-3/4">
+                <div className="p-2 sm:p-4 h-full">
+                  <div className="bg-black/40 backdrop-blur-sm p-5 sm:p-8 rounded-lg border border-fellers-green/30 h-full flex flex-col">
                     <div className="flex mb-4">
                       {[...Array(testimonial.stars)].map((_, i) => (
-                        <Star key={i} className="w-5 h-5 text-fellers-green fill-fellers-green" />
+                        <Star key={i} className="w-4 sm:w-5 h-4 sm:h-5 text-fellers-green fill-fellers-green" />
                       ))}
                     </div>
                     
-                    <blockquote className="text-lg md:text-xl italic text-fellers-white mb-6 flex-grow">
+                    <blockquote className="text-base sm:text-lg md:text-xl italic text-fellers-white mb-4 sm:mb-6 flex-grow">
                       "{testimonial.quote}"
                     </blockquote>
                     
                     <div>
                       <p className="font-semibold text-fellers-white">{testimonial.name}</p>
-                      <p className="text-sm text-fellers-white/70">{testimonial.role}</p>
+                      <p className="text-xs sm:text-sm text-fellers-white/70">{testimonial.role}</p>
                     </div>
                   </div>
                 </div>
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="-left-4 md:-left-12" />
-          <CarouselNext className="-right-4 md:-right-12" />
+          <CarouselPrevious className="hidden sm:flex -left-2 sm:-left-4 md:-left-12" />
+          <CarouselNext className="hidden sm:flex -right-2 sm:-right-4 md:-right-12" />
         </Carousel>
       </div>
     </section>
