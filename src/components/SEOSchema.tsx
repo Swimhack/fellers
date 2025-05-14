@@ -5,8 +5,8 @@ const SEOSchema = () => {
   const schemaData = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
-    "name": "Fellers Resources, LLC",
-    "description": "24/7 Heavy-Duty Towing & Recovery services within 100 miles of Houston.",
+    "name": "Fellers Resources, LLC - Houston Heavy Towing",
+    "description": "Houston heavy towing specialists providing 24/7 Heavy-Duty Towing & Recovery services within 100 miles of Houston.",
     "url": "https://fellersresources.com/",
     "telephone": "+19366629930",
     "openingHours": "Mo-Su 00:00-24:00",
@@ -20,6 +20,7 @@ const SEOSchema = () => {
       "geoRadius": "100 miles"
     },
     "serviceType": [
+      "Houston Heavy Towing",
       "Heavy-Duty Towing & Recovery",
       "Load Transfers",
       "Light / Medium Towing & Recovery",
@@ -35,7 +36,7 @@ const SEOSchema = () => {
     ],
     "address": {
       "@type": "PostalAddress",
-      "addressLocality": "Katy",
+      "addressLocality": "Houston",
       "addressRegion": "TX",
       "addressCountry": "US"
     }
