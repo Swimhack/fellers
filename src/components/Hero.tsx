@@ -1,61 +1,82 @@
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
+import React, { useEffect, useRef } from 'react';
 import { Phone } from 'lucide-react';
 import FellersLogo from './FellersLogo';
+import { Button } from '@/components/ui/button';
+import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
+
+// Later, we'll need to replace these with actual uploaded images
+const backgroundImages = [
+  "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+  "https://images.unsplash.com/photo-1591768793355-74d04bb6608f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+  "https://images.unsplash.com/photo-1581222666174-a767898328fc?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
+];
 
 const Hero = () => {
+  const carouselRef = useRef(null);
+  
+  useEffect(() => {
+    // Preload hero images
+    backgroundImages.forEach(src => {
+      const img = new Image();
+      img.src = src;
+    });
+  }, []);
+
   return (
-    <section className="relative bg-fellers-darkNavy text-white pt-32 pb-20">
-      <div className="absolute inset-0 bg-gradient-to-r from-fellers-darkNavy to-fellers-purple/90 opacity-90"></div>
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="flex flex-col md:flex-row items-center">
-          <div className="md:w-1/2 mb-8 md:mb-0">
-            <FellersLogo className="mb-6 mx-auto md:mx-0" />
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-center md:text-left">
-              Towing & Recovery Services
-            </h1>
-            <p className="text-xl mb-8 text-center md:text-left">
-              24/7 Emergency Assistance - Insured and Bonded
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-              <Button className="bg-fellers-green hover:bg-fellers-green/90 text-fellers-darkNavy text-lg px-8 py-6">
-                <Phone className="w-5 h-5 mr-2" />
-                <a href="tel:+19366629930">Call Now: 936-662-9930</a>
-              </Button>
-              <Button variant="outline" className="border-fellers-green text-fellers-green hover:bg-fellers-green/10 text-lg px-8 py-6">
-                <a href="#contact">Contact Us</a>
-              </Button>
-            </div>
-          </div>
-          <div className="md:w-1/2 flex justify-center">
-            <div className="relative w-full max-w-md p-1 bg-gradient-to-r from-fellers-green to-fellers-purple rounded-lg shadow-xl">
-              <div className="bg-fellers-darkNavy p-6 rounded-lg">
-                <h3 className="text-fellers-green text-xl font-bold mb-4">Fast Response Times</h3>
-                <ul className="space-y-2">
-                  <li className="flex items-center">
-                    <div className="w-2 h-2 bg-fellers-green rounded-full mr-2"></div>
-                    <span>Available 24 hours a day, 7 days a week</span>
-                  </li>
-                  <li className="flex items-center">
-                    <div className="w-2 h-2 bg-fellers-green rounded-full mr-2"></div>
-                    <span>Serving Katy/Houston, Texas</span>
-                  </li>
-                  <li className="flex items-center">
-                    <div className="w-2 h-2 bg-fellers-green rounded-full mr-2"></div>
-                    <span>Professional & reliable service</span>
-                  </li>
-                  <li className="flex items-center">
-                    <div className="w-2 h-2 bg-fellers-green rounded-full mr-2"></div>
-                    <span>Light, medium & heavy duty towing</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
+    <div className="relative min-h-[90vh] flex items-center overflow-hidden" id="hero">
+      <div className="absolute inset-0 z-0">
+        <Carousel ref={carouselRef} className="w-full h-full" opts={{
+          loop: true,
+          align: 'start',
+          watchDrag: false
+        }}>
+          <CarouselContent className="h-full">
+            {backgroundImages.map((src, index) => (
+              <CarouselItem key={index} className="h-full">
+                <div 
+                  className="w-full h-full bg-cover bg-center" 
+                  style={{ 
+                    backgroundImage: `url(${src})`, 
+                    filter: 'brightness(0.3) blur(2px)'
+                  }}
+                />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
+      </div>
+
+      <div className="container mx-auto relative z-10 text-center px-4 py-16 md:py-24">
+        <div className="animate-fade-in-up">
+          <FellersLogo className="mx-auto mb-6" size="large" />
+          
+          <h1 className="text-3xl md:text-5xl lg:text-6xl text-fellers-white mb-4 drop-shadow-lg">
+            24/7 HEAVY-DUTY TOWING & RECOVERY
+          </h1>
+          
+          <p className="text-xl md:text-2xl text-fellers-white mb-8 max-w-3xl mx-auto">
+            Insured • Bonded • Fast Response within 100 mi of Houston
+          </p>
+          
+          <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8">
+            <Button 
+              className="bg-fellers-green hover:bg-fellers-green/90 text-fellers-charcoal text-lg font-bold py-6 px-8 rounded-lg animate-pulse-light shadow-[0_0_15px_rgba(57,255,20,0.5)]"
+            >
+              <Phone className="w-6 h-6 mr-2" />
+              <a href="tel:9366629930">CALL DISPATCH NOW</a>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className="border-2 border-fellers-white hover:bg-fellers-white/10 text-fellers-white font-bold py-6 px-8 rounded-lg"
+            >
+              <a href="#contact">Request Service</a>
+            </Button>
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 };
 
