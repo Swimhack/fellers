@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Truck, ArrowUpDown, Car, RefreshCw, Forklift, Crane, Anchor, Layers, Wrench, Map, AlertTriangle, Compass } from 'lucide-react';
+import { Truck, ArrowUpDown, Car, RefreshCw, Forklift, Wrench, Map, AlertTriangle, Compass, Construction, Anchor, Layers } from 'lucide-react';
 
 const services = [
   { icon: <Truck />, name: 'Heavy-Duty Towing & Recovery' },
@@ -8,7 +8,7 @@ const services = [
   { icon: <Car />, name: 'Light / Medium Towing & Recovery' },
   { icon: <RefreshCw />, name: 'Swap Outs' },
   { icon: <Forklift />, name: 'Landoll Service' },
-  { icon: <Crane />, name: 'Rotator / Mobile Crane' },
+  { icon: <Construction />, name: 'Rotator / Mobile Crane' },
   { icon: <Anchor />, name: 'Winch Outs' },
   { icon: <Layers />, name: 'Decking / Undecking' },
   { icon: <Wrench />, name: 'Minor Roadside Assistance' },

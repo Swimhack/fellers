@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Clock, Tool, Truck } from 'lucide-react';
+import { Clock, Wrench, Truck } from 'lucide-react';
 
 const QuickStats = () => {
   const stats = [
@@ -10,7 +10,7 @@ const QuickStats = () => {
       description: 'Emergency response any time, any day'
     },
     {
-      icon: <Tool className="w-12 h-12 text-fellers-green" />,
+      icon: <Wrench className="w-12 h-12 text-fellers-green" />,
       title: 'Rotator & Landoll Specialists',
       description: 'Expert equipment for every situation'
     },
