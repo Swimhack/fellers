@@ -69,7 +69,7 @@ const Hero = () => {
             
             <Button 
               variant="outline" 
-              className="border-2 border-fellers-white hover:bg-fellers-white/10 text-fellers-white font-bold py-6 px-8 rounded-lg"
+              className="border-2 border-fellers-white bg-fellers-purpleFrom hover:bg-fellers-purpleTo text-fellers-white font-bold py-6 px-8 rounded-lg transition-colors"
             >
               <a href="#contact">Request Service</a>
             </Button>
