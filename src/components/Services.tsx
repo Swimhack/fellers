@@ -51,9 +51,9 @@ const Services = () => {
     <section id="services" className="py-20 bg-fellers-lightGray">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-fellers-darkNavy">Our Services</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-black">Our Services</h2>
           <div className="w-20 h-1 bg-fellers-green mx-auto mt-4 mb-6"></div>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-800 font-medium max-w-2xl mx-auto">
             We provide a comprehensive range of towing and recovery services to meet all your vehicle assistance needs.
           </p>
         </div>
@@ -64,18 +64,18 @@ const Services = () => {
               <CardHeader className="pb-2">
                 <div className="flex items-center gap-4">
                   {service.icon}
-                  <CardTitle className="text-fellers-purple">{service.title}</CardTitle>
+                  <CardTitle className="text-black">{service.title}</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600">{service.description}</p>
+                <p className="text-gray-800">{service.description}</p>
               </CardContent>
             </Card>
           ))}
         </div>
         
         <div className="mt-12 text-center">
-          <p className="text-lg font-medium text-fellers-darkNavy mb-6">
+          <p className="text-lg font-medium text-black mb-6">
             Additional services: Rotator/Mobile Crane, Winch Outs, Decking/Undecking, Hazmat Cleanup, and Load Shifts
           </p>
         </div>

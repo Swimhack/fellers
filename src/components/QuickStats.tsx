@@ -34,8 +34,8 @@ const QuickStats = () => {
               <div className="mb-3 sm:mb-4">
                 {stat.icon}
               </div>
-              <h3 className="text-lg sm:text-xl font-bold text-fellers-white mb-1 sm:mb-2">{stat.title}</h3>
-              <p className="text-sm sm:text-base text-fellers-white/80">{stat.description}</p>
+              <h3 className="text-lg sm:text-xl font-bold text-white mb-1 sm:mb-2">{stat.title}</h3>
+              <p className="text-sm sm:text-base text-white">{stat.description}</p>
             </div>
           ))}
         </div>

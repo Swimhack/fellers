@@ -8,7 +8,7 @@ const MobileBottomBar = () => {
       <div className="flex justify-around items-center">
         <a 
           href="tel:9366629930" 
-          className="flex flex-col items-center justify-center py-3 px-4 text-fellers-white hover:text-fellers-green transition-colors flex-1 active:bg-black/20"
+          className="flex flex-col items-center justify-center py-3 px-4 text-white hover:text-fellers-green transition-colors flex-1 active:bg-black/20"
         >
           <Phone className="h-6 w-6 mb-1" />
           <span className="text-xs font-medium">Call</span>
@@ -16,7 +16,7 @@ const MobileBottomBar = () => {
         
         <a 
           href="mailto:dispatch@fellersresources.com" 
-          className="flex flex-col items-center justify-center py-3 px-4 text-fellers-white hover:text-fellers-green transition-colors flex-1 active:bg-black/20"
+          className="flex flex-col items-center justify-center py-3 px-4 text-white hover:text-fellers-green transition-colors flex-1 active:bg-black/20"
         >
           <Mail className="h-6 w-6 mb-1" />
           <span className="text-xs font-medium">Email</span>
@@ -24,7 +24,7 @@ const MobileBottomBar = () => {
         
         <a 
           href="#contact" 
-          className="flex flex-col items-center justify-center py-3 px-4 text-fellers-white hover:text-fellers-green transition-colors flex-1 active:bg-black/20"
+          className="flex flex-col items-center justify-center py-3 px-4 text-white hover:text-fellers-green transition-colors flex-1 active:bg-black/20"
         >
           <ClipboardList className="h-6 w-6 mb-1" />
           <span className="text-xs font-medium">Request</span>

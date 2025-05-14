@@ -21,7 +21,7 @@ const ServicesGrid = () => {
   return (
     <section id="services" className="section-padding bg-fellers-charcoal">
       <div className="container mx-auto">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl text-center mb-8 md:mb-12 text-fellers-white">OUR SERVICES</h2>
+        <h2 className="text-2xl sm:text-3xl md:text-4xl text-center mb-8 md:mb-12 text-white font-bold">OUR SERVICES</h2>
         
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
           {services.map((service, index) => (
@@ -33,7 +33,7 @@ const ServicesGrid = () => {
               <div className="text-fellers-green mb-2 md:mb-4">
                 {React.cloneElement(service.icon, { size: 32 })}
               </div>
-              <h3 className="text-center text-fellers-white text-sm sm:text-base font-semibold">{service.name}</h3>
+              <h3 className="text-center text-white text-sm sm:text-base font-semibold">{service.name}</h3>
             </div>
           ))}
         </div>

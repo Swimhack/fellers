@@ -15,7 +15,7 @@ const WhyChooseUs = () => {
   return (
     <section id="why-choose-us" className="section-padding bg-black/30">
       <div className="container mx-auto">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl text-center mb-8 md:mb-12 text-fellers-white gradient-bg text-transparent bg-clip-text">WHY CHOOSE US</h2>
+        <h2 className="text-2xl sm:text-3xl md:text-4xl text-center mb-8 md:mb-12 text-white font-bold">WHY CHOOSE US</h2>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
           <div className="animate-fade-in-up order-2 lg:order-1">
@@ -30,8 +30,8 @@ const WhyChooseUs = () => {
           </div>
           
           <div className="order-1 lg:order-2">
-            <h3 className="text-xl sm:text-2xl md:text-3xl mb-4 md:mb-6 text-fellers-white">THE HEAVY-DUTY RECOVERY EXPERTS</h3>
-            <p className="mb-6 text-base sm:text-lg text-fellers-white/80">
+            <h3 className="text-xl sm:text-2xl md:text-3xl mb-4 md:mb-6 text-white font-bold">THE HEAVY-DUTY RECOVERY EXPERTS</h3>
+            <p className="mb-6 text-base sm:text-lg text-white">
               At Fellers Resources, we understand the critical nature of heavy-duty towing and recovery. 
               When you're dealing with valuable equipment and tight timelines, you need a partner you can trust.
             </p>
@@ -44,9 +44,9 @@ const WhyChooseUs = () => {
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   <div className="bg-fellers-green rounded-full p-1 mr-3 flex-shrink-0">
-                    <Check className="w-3 h-3 sm:w-4 sm:h-4 text-fellers-charcoal" />
+                    <Check className="w-3 h-3 sm:w-4 sm:h-4 text-black" />
                   </div>
-                  <span className="text-sm sm:text-base text-fellers-white">{reason}</span>
+                  <span className="text-sm sm:text-base text-white font-medium">{reason}</span>
                 </li>
               ))}
             </ul>

@@ -34,7 +34,7 @@ const Testimonials = () => {
   return (
     <section className="section-padding bg-black/50">
       <div className="container mx-auto">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl text-center mb-8 md:mb-12 text-fellers-white">WHAT OUR CLIENTS SAY</h2>
+        <h2 className="text-2xl sm:text-3xl md:text-4xl text-center mb-8 md:mb-12 text-white font-bold">WHAT OUR CLIENTS SAY</h2>
         
         <Carousel
           opts={{
@@ -54,13 +54,13 @@ const Testimonials = () => {
                       ))}
                     </div>
                     
-                    <blockquote className="text-base sm:text-lg md:text-xl italic text-fellers-white mb-4 sm:mb-6 flex-grow">
+                    <blockquote className="text-base sm:text-lg md:text-xl italic text-white mb-4 sm:mb-6 flex-grow">
                       "{testimonial.quote}"
                     </blockquote>
                     
                     <div>
-                      <p className="font-semibold text-fellers-white">{testimonial.name}</p>
-                      <p className="text-xs sm:text-sm text-fellers-white/70">{testimonial.role}</p>
+                      <p className="font-semibold text-white">{testimonial.name}</p>
+                      <p className="text-xs sm:text-sm text-white/90">{testimonial.role}</p>
                     </div>
                   </div>
                 </div>

@@ -68,7 +68,9 @@ export default {
 					purpleFrom: '#7D00D9',
 					purpleTo: '#4A0080',
 					charcoal: '#3A3A3A',
-					white: '#FFFFFF'
+					white: '#FFFFFF',
+					darkNavy: '#1A1F2C',
+					lightGray: '#F6F6F7'
 				}
 			},
 			borderRadius: {
