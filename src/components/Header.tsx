@@ -64,7 +64,7 @@ const Header = () => {
         </button>
         
         <div className="flex flex-col items-center space-y-6 text-xl">
-          <FellersLogo className="mb-6" size="default" />
+          <FellersLogo className="mb-8" size="default" />
           <a href="#services" onClick={closeMenu} className="text-fellers-white hover:text-fellers-green transition-colors">Services</a>
           <a href="#why-choose-us" onClick={closeMenu} className="text-fellers-white hover:text-fellers-green transition-colors">Why Choose Us</a>
           <a href="#gallery" onClick={closeMenu} className="text-fellers-white hover:text-fellers-green transition-colors">Gallery</a>

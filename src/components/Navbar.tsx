@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/button';
 
 const Navbar = () => {
   return (
-    <nav className="bg-fellers-charcoal py-4 px-6 shadow-lg fixed w-full top-0 z-50">
+    <nav className="bg-fellers-charcoal py-6 px-6 shadow-lg fixed w-full top-0 z-50">
       <div className="container mx-auto flex items-center justify-between">
         <div className="flex items-center">
-          <FellersLogo className="mr-6" />
+          <FellersLogo className="mr-6" size="small" />
         </div>
         
         <div className="hidden md:flex items-center space-x-6">
