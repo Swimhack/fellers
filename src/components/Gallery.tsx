@@ -10,13 +10,13 @@ import {
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-// Added the uploaded tow truck image as the first item in the gallery
+// Updated gallery images with heavy towing service related images
 const galleryImages = [
-  "/lovable-uploads/87ba276a-1d9f-4e50-b096-524af87702c9.png",
-  "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-  "https://images.unsplash.com/photo-1591768793355-74d04bb6608f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-  "https://images.unsplash.com/photo-1581222666174-a767898328fc?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-  "https://images.unsplash.com/photo-1580820726687-30e7ba70d976?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
+  "/lovable-uploads/87ba276a-1d9f-4e50-b096-524af87702c9.png", // Keeping the user's uploaded tow truck image
+  "https://images.unsplash.com/photo-1626964737076-ecb6b6a72d4f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80", // Heavy tow truck
+  "https://images.unsplash.com/photo-1598488035139-bd3eecb95fca?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80", // Tow truck in action
+  "https://images.unsplash.com/photo-1607461042421-b47f193fe8e6?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80", // Heavy vehicle recovery
+  "https://images.unsplash.com/photo-1599256872237-5feccd4a1980?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"  // Heavy duty towing
 ];
 
 const Gallery = () => {
@@ -51,7 +51,7 @@ const Gallery = () => {
                       <AspectRatio ratio={16 / 9} className="bg-black">
                         <img
                           src={image}
-                          alt={`Fellers Resources truck ${index + 1}`}
+                          alt={`Fellers Resources heavy towing equipment ${index + 1}`}
                           className="object-cover w-full h-full transition-transform duration-500 hover:scale-105"
                           loading="lazy"
                         />
