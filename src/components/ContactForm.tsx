@@ -1,11 +1,19 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from "sonner";
+import { Textarea } from '@/components/ui/textarea';
+import emailjs from 'emailjs-com';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
+// EmailJS constants - replace these with your own
+const EMAIL_SERVICE_ID = "YOUR_EMAILJS_SERVICE_ID";
+const EMAIL_TEMPLATE_ID = "YOUR_EMAILJS_TEMPLATE_ID";
+const EMAIL_USER_ID = "YOUR_EMAILJS_USER_ID";
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({
@@ -17,6 +25,16 @@ const ContactForm = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [showEmailJSAlert, setShowEmailJSAlert] = useState(false);
+  
+  useEffect(() => {
+    // Check if EmailJS credentials are set
+    if (EMAIL_SERVICE_ID === "YOUR_EMAILJS_SERVICE_ID" || 
+        EMAIL_TEMPLATE_ID === "YOUR_EMAILJS_TEMPLATE_ID" || 
+        EMAIL_USER_ID === "YOUR_EMAILJS_USER_ID") {
+      setShowEmailJSAlert(true);
+    }
+  }, []);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -27,25 +45,61 @@ const ContactForm = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate form submission
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setSubmitted(true);
-      toast.success("We're rolling—expect a call in minutes.", {
-        description: "Thank you for your service request!",
+    try {
+      // If EmailJS is not configured, use the fallback simulation
+      if (showEmailJSAlert) {
+        // Simulate form submission
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        handleSuccessSubmission();
+        return;
+      }
+      
+      // Prepare the template parameters
+      const templateParams = {
+        from_name: formData.name,
+        from_phone: formData.phone,
+        from_email: formData.email || "No email provided",
+        location: formData.location,
+        message: formData.details,
+        reply_to: formData.email || ""
+      };
+      
+      // Send the email using EmailJS
+      await emailjs.send(
+        EMAIL_SERVICE_ID,
+        EMAIL_TEMPLATE_ID,
+        templateParams,
+        EMAIL_USER_ID
+      );
+      
+      handleSuccessSubmission();
+    } catch (error) {
+      console.error('Email sending failed:', error);
+      toast.error('Failed to send your request', {
+        description: 'Please try again or call our dispatch directly.',
         duration: 5000
       });
-      setFormData({
-        name: '',
-        phone: '',
-        email: '',
-        location: '',
-        details: ''
-      });
-      
-      // Reset success state after 5 seconds
-      setTimeout(() => setSubmitted(false), 5000);
-    }, 1500);
+      setIsSubmitting(false);
+    }
+  };
+  
+  const handleSuccessSubmission = () => {
+    setIsSubmitting(false);
+    setSubmitted(true);
+    toast.success("We're rolling—expect a call in minutes.", {
+      description: "Thank you for your service request!",
+      duration: 5000
+    });
+    setFormData({
+      name: '',
+      phone: '',
+      email: '',
+      location: '',
+      details: ''
+    });
+    
+    // Reset success state after 5 seconds
+    setTimeout(() => setSubmitted(false), 5000);
   };
 
   return (
@@ -56,6 +110,14 @@ const ContactForm = () => {
           <p className="text-center text-lg mb-12 text-fellers-white/90">
             Need assistance? Fill out the form below and we'll dispatch a team right away.
           </p>
+          
+          {showEmailJSAlert && (
+            <Alert className="mb-6 bg-amber-500/10 border-amber-500/50 text-amber-100">
+              <AlertDescription>
+                EmailJS configuration required. Replace the EmailJS constants at the top of the ContactForm.tsx file with your own credentials.
+              </AlertDescription>
+            </Alert>
+          )}
           
           <Card className="bg-black/40 backdrop-blur-sm border-fellers-green/30">
             <CardHeader>
@@ -119,14 +181,14 @@ const ContactForm = () => {
                 
                 <div className="space-y-2">
                   <Label htmlFor="details" className="text-fellers-white">Vehicle/Load Details</Label>
-                  <textarea 
+                  <Textarea 
                     id="details"
                     name="details" 
                     value={formData.details}
                     onChange={handleChange}
                     rows={4}
                     placeholder="Describe your vehicle or load situation"
-                    className="w-full rounded-md border border-fellers-green/30 bg-white/10 py-2 px-3 text-fellers-white resize-none focus:outline-none focus:ring-2 focus:ring-fellers-green focus:border-transparent"
+                    className="w-full border border-fellers-green/30 bg-white/10 py-2 px-3 text-fellers-white resize-none focus:outline-none focus:ring-2 focus:ring-fellers-green focus:border-transparent"
                     required
                   />
                 </div>
