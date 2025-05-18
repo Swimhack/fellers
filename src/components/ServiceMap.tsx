@@ -9,9 +9,9 @@ const ServiceMap = () => {
         
         <div className="rounded-lg overflow-hidden shadow-2xl border-2 border-fellers-green/50 mb-4 md:mb-6">
           <div className="aspect-ratio-16/9 h-[250px] sm:h-[350px] md:h-[450px] w-full">
-            {/* Replace with Google Maps iframe when API key is available */}
+            {/* Updated iframe to center on Houston, TX */}
             <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d886263.0001328143!2d-96.10629445!3d29.815995!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8640c16de81f3ca5%3A0xf43e0b60ae539ac9!2sKaty%2C%20TX!5e0!3m2!1sen!2sus!4v1715967269045!5m2!1sen!2sus" 
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d886261.0548555356!2d-95.96760996473055!3d29.816882865936082!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8640b8b4488d8501%3A0xca0d02def365053b!2sHouston%2C%20TX!5e0!3m2!1sen!2sus!4v1716051352067!5m2!1sen!2sus" 
               width="100%" 
               height="100%" 
               style={{ border: 0 }} 
