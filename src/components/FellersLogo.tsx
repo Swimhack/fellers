@@ -12,7 +12,7 @@ const FellersLogo = ({ className = "", size = "default" }: { className?: string,
   return (
     <div className={`${className} flex flex-col items-center`}>
       <img 
-        src="/lovable-uploads/b8978edb-3048-406e-b2b2-63ff95dbc3a7.png" 
+        src="/lovable-uploads/e54e7c62-7a2b-4780-8e6a-c9159febe2f5.png" 
         alt="Fellers Resources, LLC" 
         className={`${sizeClasses[size]} w-auto`}
       />
