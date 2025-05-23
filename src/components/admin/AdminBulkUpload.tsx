@@ -1,20 +1,37 @@
-import React, { useState, useRef } from 'react';
+
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Upload, Image } from "lucide-react";
+import { Upload, Download } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
 
 interface UploadedImage {
   id: number;
   file: File;
   preview: string;
+  name: string;
+  uploadDate: string;
 }
 
 const AdminBulkUpload = () => {
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
+  const [savedImages, setSavedImages] = useState<UploadedImage[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load saved images from localStorage when component mounts
+  useEffect(() => {
+    const savedImagesString = localStorage.getItem('uploadedBulkImages');
+    if (savedImagesString) {
+      try {
+        const parsedImages = JSON.parse(savedImagesString);
+        setSavedImages(parsedImages);
+      } catch (error) {
+        console.error("Error parsing saved images:", error);
+      }
+    }
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
@@ -30,7 +47,9 @@ const AdminBulkUpload = () => {
       newImages.push({
         id: Date.now() + Math.random(),
         file,
-        preview
+        preview,
+        name: file.name,
+        uploadDate: new Date().toISOString()
       });
     });
 
@@ -51,6 +70,28 @@ const AdminBulkUpload = () => {
     });
   };
 
+  const handleRemoveSavedImage = (id: number) => {
+    setSavedImages(prev => {
+      const filtered = prev.filter(image => image.id !== id);
+      localStorage.setItem('uploadedBulkImages', JSON.stringify(filtered));
+      return filtered;
+    });
+
+    // Also update the gallery images if needed
+    const galleryImagesString = localStorage.getItem('galleryImages');
+    if (galleryImagesString) {
+      try {
+        const galleryImages = JSON.parse(galleryImagesString);
+        const updatedGallery = galleryImages.filter((img: any) => img.id !== id);
+        localStorage.setItem('galleryImages', JSON.stringify(updatedGallery));
+      } catch (error) {
+        console.error("Error updating gallery images:", error);
+      }
+    }
+    
+    toast.success("Image removed successfully");
+  };
+
   const handleBulkUpload = () => {
     if (uploadedImages.length === 0) {
       toast.error("No images to upload", {
@@ -62,7 +103,7 @@ const AdminBulkUpload = () => {
     setIsUploading(true);
 
     // In a real application, you would upload the files to your server or cloud storage
-    // For now, we'll simulate the upload and store in localStorage
+    // For now, we're simulating the upload and storing in localStorage
     setTimeout(() => {
       // Get existing gallery images from localStorage
       const savedImagesString = localStorage.getItem('galleryImages');
@@ -94,6 +135,11 @@ const AdminBulkUpload = () => {
       const updatedGallery = [...galleryImages, ...newGalleryImages];
       localStorage.setItem('galleryImages', JSON.stringify(updatedGallery));
       
+      // Save to our separate bulk upload storage
+      const updatedSavedImages = [...savedImages, ...uploadedImages];
+      setSavedImages(updatedSavedImages);
+      localStorage.setItem('uploadedBulkImages', JSON.stringify(updatedSavedImages));
+      
       setIsUploading(false);
       toast.success(`Successfully processed ${uploadedImages.length} images`);
       
@@ -102,8 +148,22 @@ const AdminBulkUpload = () => {
     }, 1500);
   };
 
+  const handleDownloadImage = (image: UploadedImage) => {
+    const link = document.createElement('a');
+    link.href = image.preview;
+    link.download = image.name || `image-${image.id}.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+  };
+
   return (
-    <div className="space-y-8 p-6">
+    <div className="space-y-8">
       <Card>
         <CardHeader>
           <CardTitle>Bulk Image Upload</CardTitle>
@@ -167,6 +227,54 @@ const AdminBulkUpload = () => {
           )}
         </CardContent>
       </Card>
+      
+      {/* Saved Images Section */}
+      {savedImages.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Saved Images ({savedImages.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {savedImages.map((image) => (
+                <div key={image.id} className="relative group">
+                  <div className="aspect-video rounded-md overflow-hidden border border-gray-200">
+                    <img 
+                      src={image.preview} 
+                      alt={`Preview ${image.name}`} 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="absolute top-1 right-1 flex gap-1">
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="size-8 bg-white hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => handleDownloadImage(image)}
+                    >
+                      <Download className="size-4" />
+                      <span className="sr-only">Download</span>
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="size-8 bg-white hover:bg-white text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => handleRemoveSavedImage(image.id)}
+                    >
+                      <span className="sr-only">Remove</span>
+                      &times;
+                    </Button>
+                  </div>
+                  <div className="mt-1 space-y-1">
+                    <p className="text-xs text-gray-500 truncate">{image.name}</p>
+                    <p className="text-xs text-gray-400">{formatDate(image.uploadDate)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

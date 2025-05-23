@@ -7,5 +7,13 @@ export default function BulkUploadImagesTab() {
     document.title = "Bulk Upload | Admin Dashboard | Fellers Resources";
   }, []);
 
-  return <AdminBulkUpload />;
+  return (
+    <div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold">Bulk Image Upload</h1>
+        <p className="text-muted-foreground">Upload multiple images at once and manage your uploaded images.</p>
+      </div>
+      <AdminBulkUpload />
+    </div>
+  );
 }
