@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Gallery, Upload } from 'lucide-react';
+import { Image, Upload } from 'lucide-react';
 import FellersLogo from '@/components/FellersLogo';
 import { 
   Sidebar, 
@@ -31,7 +31,7 @@ const AdminSidebar = () => {
                   isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : ""
                 }
               >
-                <Gallery className="mr-2" />
+                <Image className="mr-2" />
                 <span>Gallery Management</span>
               </NavLink>
             </SidebarMenuButton>
