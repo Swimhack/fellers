@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -64,7 +63,10 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				fellers: {
-					green: '#39FF14',
+					green: '#00FF00', // Updated to neon green
+					brightPurple: '#6A00FF', // Added bright purple
+					darkBackground: '#333333', // Added dark background
+					inputBackground: '#444444', // Added input background
 					purpleFrom: '#7D00D9',
 					purpleTo: '#4A0080',
 					charcoal: '#3A3A3A',
@@ -116,13 +118,18 @@ export default {
 						opacity: '1',
 						transform: 'translateY(0)'
 					}
+				},
+				'button-glow': {
+					'0%, 100%': { boxShadow: '0 0 5px rgba(0, 255, 0, 0.5)' },
+					'50%': { boxShadow: '0 0 15px rgba(0, 255, 0, 0.8)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'pulse-light': 'pulse-light 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-				'fade-in-up': 'fade-in-up 0.5s ease-out'
+				'fade-in-up': 'fade-in-up 0.5s ease-out',
+				'button-glow': 'button-glow 2s ease-in-out infinite'
 			}
 		}
 	},

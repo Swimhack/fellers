@@ -164,13 +164,13 @@ const AdminBulkUpload = () => {
 
   return (
     <div className="space-y-8">
-      <Card>
+      <Card className="bg-fellers-darkBackground border border-gray-700">
         <CardHeader>
-          <CardTitle>Bulk Image Upload</CardTitle>
+          <CardTitle className="text-white">Bulk Image Upload</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+            <div className="border-2 border-dashed border-gray-500 rounded-lg p-6 text-center">
               <Input
                 type="file"
                 ref={fileInputRef}
@@ -184,8 +184,8 @@ const AdminBulkUpload = () => {
                 htmlFor="image-upload" 
                 className="flex flex-col items-center justify-center cursor-pointer"
               >
-                <Upload className="w-12 h-12 text-gray-400" />
-                <p className="mt-2 text-sm text-gray-600">Click to select images or drag and drop</p>
+                <Upload className="w-12 h-12 text-gray-300" />
+                <p className="mt-2 text-sm text-gray-300">Click to select images or drag and drop</p>
                 <p className="text-xs text-gray-400 mt-1">Supports: JPG, PNG, GIF</p>
               </label>
             </div>
@@ -193,7 +193,7 @@ const AdminBulkUpload = () => {
             <Button 
               onClick={handleBulkUpload}
               disabled={uploadedImages.length === 0 || isUploading}
-              className="w-full bg-fellers-green hover:bg-fellers-green/90"
+              className="w-full admin-btn-primary"
             >
               {isUploading ? 'Processing...' : `Upload ${uploadedImages.length} Images`}
             </Button>
@@ -201,11 +201,11 @@ const AdminBulkUpload = () => {
           
           {uploadedImages.length > 0 && (
             <div className="mt-6">
-              <h3 className="text-lg font-medium mb-3">Selected Images ({uploadedImages.length})</h3>
+              <h3 className="text-lg font-medium mb-3 text-white">Selected Images ({uploadedImages.length})</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {uploadedImages.map((image) => (
                   <div key={image.id} className="relative group">
-                    <div className="aspect-video rounded-md overflow-hidden border border-gray-200">
+                    <div className="aspect-video rounded-md overflow-hidden border border-gray-600">
                       <img 
                         src={image.preview} 
                         alt={`Preview ${image.file.name}`} 
@@ -214,12 +214,12 @@ const AdminBulkUpload = () => {
                     </div>
                     <button
                       onClick={() => handleRemoveImage(image.id)}
-                      className="absolute top-1 right-1 bg-white/80 hover:bg-white text-red-500 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1 right-1 bg-fellers-darkBackground/80 hover:bg-fellers-darkBackground text-red-500 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <span className="sr-only">Remove</span>
                       &times;
                     </button>
-                    <p className="text-xs text-gray-500 truncate mt-1">{image.file.name}</p>
+                    <p className="text-xs text-gray-300 truncate mt-1">{image.file.name}</p>
                   </div>
                 ))}
               </div>
@@ -230,15 +230,15 @@ const AdminBulkUpload = () => {
       
       {/* Saved Images Section */}
       {savedImages.length > 0 && (
-        <Card>
+        <Card className="bg-fellers-darkBackground border border-gray-700">
           <CardHeader>
-            <CardTitle>Saved Images ({savedImages.length})</CardTitle>
+            <CardTitle className="text-white">Saved Images ({savedImages.length})</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {savedImages.map((image) => (
                 <div key={image.id} className="relative group">
-                  <div className="aspect-video rounded-md overflow-hidden border border-gray-200">
+                  <div className="aspect-video rounded-md overflow-hidden border border-gray-600">
                     <img 
                       src={image.preview} 
                       alt={`Preview ${image.name}`} 
@@ -249,16 +249,16 @@ const AdminBulkUpload = () => {
                     <Button
                       size="icon"
                       variant="outline"
-                      className="size-8 bg-white hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="size-8 bg-fellers-darkBackground hover:bg-fellers-inputBackground opacity-0 group-hover:opacity-100 transition-opacity border-gray-600"
                       onClick={() => handleDownloadImage(image)}
                     >
-                      <Download className="size-4" />
+                      <Download className="size-4 text-fellers-green" />
                       <span className="sr-only">Download</span>
                     </Button>
                     <Button
                       size="icon"
                       variant="outline"
-                      className="size-8 bg-white hover:bg-white text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="size-8 bg-fellers-darkBackground hover:bg-fellers-inputBackground text-red-500 opacity-0 group-hover:opacity-100 transition-opacity border-gray-600"
                       onClick={() => handleRemoveSavedImage(image.id)}
                     >
                       <span className="sr-only">Remove</span>
@@ -266,7 +266,7 @@ const AdminBulkUpload = () => {
                     </Button>
                   </div>
                   <div className="mt-1 space-y-1">
-                    <p className="text-xs text-gray-500 truncate">{image.name}</p>
+                    <p className="text-xs text-gray-300 truncate">{image.name}</p>
                     <p className="text-xs text-gray-400">{formatDate(image.uploadDate)}</p>
                   </div>
                 </div>

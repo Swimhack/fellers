@@ -14,24 +14,26 @@ import {
 
 const AdminSidebar = () => {
   return (
-    <Sidebar>
-      <SidebarHeader className="mb-2">
-        <div className="px-3 py-2">
-          <FellersLogo size="small" className="mx-auto" />
-          <h2 className="text-lg font-semibold text-center mt-2">Admin Dashboard</h2>
+    <Sidebar className="border-r border-gray-700">
+      <SidebarHeader className="mb-2 bg-fellers-brightPurple">
+        <div className="px-3 py-4">
+          <FellersLogo size="small" className="mx-auto filter brightness-150" />
+          <h2 className="text-lg font-semibold text-center mt-2 text-white">Admin Dashboard</h2>
         </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="bg-sidebar">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Gallery Management">
               <NavLink 
                 to="/admin/dashboard" 
                 className={({ isActive }) => 
-                  isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : ""
+                  isActive 
+                    ? "bg-fellers-brightPurple text-white" 
+                    : "text-gray-200 hover:bg-gray-700 hover:text-fellers-green"
                 }
               >
-                <Image className="mr-2" />
+                <Image className="mr-2 text-fellers-green" />
                 <span>Gallery Management</span>
               </NavLink>
             </SidebarMenuButton>
@@ -41,10 +43,12 @@ const AdminSidebar = () => {
               <NavLink 
                 to="/admin/bulk-upload" 
                 className={({ isActive }) => 
-                  isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : ""
+                  isActive 
+                    ? "bg-fellers-brightPurple text-white" 
+                    : "text-gray-200 hover:bg-gray-700 hover:text-fellers-green"
                 }
               >
-                <Upload className="mr-2" />
+                <Upload className="mr-2 text-fellers-green" />
                 <span>Bulk Upload</span>
               </NavLink>
             </SidebarMenuButton>
