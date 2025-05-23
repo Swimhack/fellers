@@ -1,15 +1,21 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Save } from "lucide-react";
-import AdminGallery from './AdminGallery';
+import { Save, Images } from "lucide-react";
 import FellersLogo from '@/components/FellersLogo';
 import { toast } from "@/components/ui/sonner";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 
-const AdminDashboard = () => {
+interface AdminDashboardLayoutProps {
+  children: React.ReactNode;
+  activeTab: "gallery" | "bulk-upload";
+}
+
+const AdminDashboardLayout = ({ children, activeTab }: AdminDashboardLayoutProps) => {
   const navigate = useNavigate();
-  const [isSaving, setIsSaving] = useState(false);
+  const [isSaving, setIsSaving] = React.useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem("adminAuthenticated");
@@ -23,6 +29,14 @@ const AdminDashboard = () => {
       setIsSaving(false);
       toast.success("All changes saved successfully");
     }, 800);
+  };
+
+  const handleTabChange = (value: string) => {
+    if (value === "gallery") {
+      navigate("/admin/dashboard");
+    } else if (value === "bulk-upload") {
+      navigate("/admin/bulk-upload");
+    }
   };
 
   return (
@@ -52,19 +66,20 @@ const AdminDashboard = () => {
         </div>
       </header>
       
-      <main className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full mb-6">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="gallery">Gallery Management</TabsTrigger>
+            <TabsTrigger value="bulk-upload">Bulk Upload</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        
         <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold">Gallery Management</h2>
-            <p className="text-gray-500 text-sm mt-1">
-              Add, remove, and reorder images in your gallery. Don't forget to click "Save Changes" when you're done.
-            </p>
-          </div>
-          <AdminGallery />
+          {children}
         </div>
-      </main>
+      </div>
     </div>
   );
 };
 
-export default AdminDashboard;
+export default AdminDashboardLayout;
