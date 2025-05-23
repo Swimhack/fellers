@@ -12,6 +12,16 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Import the same gallery images array used in Gallery component
 const initialGalleryImages = [
@@ -34,6 +44,7 @@ const AdminGallery = () => {
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [newImageUrl, setNewImageUrl] = useState("");
   const [newImageAlt, setNewImageAlt] = useState("");
+  const [imageToDelete, setImageToDelete] = useState<number | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -89,13 +100,27 @@ const AdminGallery = () => {
   };
 
   const handleRemoveImage = (id: number) => {
-    const updatedImages = galleryImages.filter(img => img.id !== id);
-    setGalleryImages(updatedImages);
+    setImageToDelete(id);
+  };
 
-    toast({
-      title: "Success",
-      description: "Image removed successfully",
-    });
+  const confirmDelete = () => {
+    if (imageToDelete !== null) {
+      const updatedImages = galleryImages.filter(img => img.id !== imageToDelete);
+      
+      // Update order values
+      const reorderedImages = updatedImages.map((img, index) => ({
+        ...img,
+        order: index + 1
+      }));
+      
+      setGalleryImages(reorderedImages);
+      setImageToDelete(null);
+
+      toast({
+        title: "Success",
+        description: "Image removed successfully",
+      });
+    }
   };
 
   const handleMoveUp = (index: number) => {
@@ -244,6 +269,22 @@ const AdminGallery = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={imageToDelete !== null} onOpenChange={() => setImageToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove this image from your gallery. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
