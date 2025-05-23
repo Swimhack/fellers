@@ -54,8 +54,7 @@ const AdminBulkUpload = () => {
 
   const handleBulkUpload = () => {
     if (uploadedImages.length === 0) {
-      toast({
-        title: "No images to upload",
+      toast("No images to upload", {
         description: "Please select at least one image to upload.",
         variant: "destructive",
       });
