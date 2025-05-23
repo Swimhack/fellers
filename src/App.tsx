@@ -8,7 +8,8 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
-import AdminBulkUploadPage from "./pages/AdminBulkUploadPage";
+import AdminLayout from "./pages/admin/AdminLayout";
+import BulkUploadImagesTab from "./pages/admin/BulkUploadImagesTab";
 import "./App.css";
 
 const queryClient = new QueryClient();
@@ -22,10 +23,16 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/admin" element={<Admin />} />
-          <Route path="/admin/" element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-          <Route path="/admin/bulk-upload" element={<AdminBulkUploadPage />} />
-          <Route path="/admin/dashboard/" element={<Navigate to="/admin/dashboard" replace />} />
+          
+          {/* New Admin Dashboard Layout with Sidebar */}
+          <Route path="/admin/dashboard" element={<AdminLayout />}>
+            <Route index element={<AdminDashboardPage />} />
+          </Route>
+          
+          <Route path="/admin/bulk-upload" element={<AdminLayout />}>
+            <Route index element={<BulkUploadImagesTab />} />
+          </Route>
+          
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
