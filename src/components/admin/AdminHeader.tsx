@@ -6,7 +6,11 @@ import { Save, LogOut } from "lucide-react";
 import FellersLogo from '@/components/FellersLogo';
 import { toast } from "@/components/ui/sonner";
 
-const AdminHeader = () => {
+interface AdminHeaderProps {
+  onSave?: () => void;
+}
+
+const AdminHeader = ({ onSave }: AdminHeaderProps) => {
   const navigate = useNavigate();
   const [isSaving, setIsSaving] = React.useState(false);
 
@@ -16,16 +20,20 @@ const AdminHeader = () => {
   };
 
   const handleSaveChanges = () => {
-    setIsSaving(true);
-    // Simulate saving process
-    setTimeout(() => {
-      setIsSaving(false);
-      toast.success("All changes saved successfully");
-    }, 800);
+    if (onSave) {
+      onSave();
+    } else {
+      setIsSaving(true);
+      // Simulate saving process
+      setTimeout(() => {
+        setIsSaving(false);
+        toast.success("All changes saved successfully");
+      }, 800);
+    }
   };
 
   return (
-    <header className="admin-header">
+    <header className="bg-fellers-brightPurple text-white px-6 py-4 fixed top-0 left-0 w-full z-50">
       <div className="flex justify-between items-center">
         {/* Logo on the left */}
         <div className="flex items-center">
