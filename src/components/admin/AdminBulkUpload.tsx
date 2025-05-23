@@ -46,7 +46,6 @@ const AdminBulkUpload = () => {
         </CardContent>
       </Card>
       
-      {/* Saved Images Section - Always show if there are images */}
       {savedImages.length > 0 && (
         <Card className="bg-fellers-darkBackground border border-gray-700">
           <CardHeader>
