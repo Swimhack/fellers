@@ -10,6 +10,7 @@ import Admin from "./pages/Admin";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import AdminLayout from "./pages/admin/AdminLayout";
 import BulkUploadImagesTab from "./pages/admin/BulkUploadImagesTab";
+import AdminRoute from "./components/admin/AdminRoute";
 import "./App.css";
 
 const queryClient = new QueryClient();
@@ -24,12 +25,20 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/admin" element={<Admin />} />
           
-          {/* New Admin Dashboard Layout with Sidebar */}
-          <Route path="/admin/dashboard" element={<AdminLayout />}>
+          {/* Protected Admin Dashboard Layout with Sidebar */}
+          <Route path="/admin/dashboard" element={
+            <AdminRoute>
+              <AdminLayout />
+            </AdminRoute>
+          }>
             <Route index element={<AdminDashboardPage />} />
           </Route>
           
-          <Route path="/admin/bulk-upload" element={<AdminLayout />}>
+          <Route path="/admin/bulk-upload" element={
+            <AdminRoute>
+              <AdminLayout />
+            </AdminRoute>
+          }>
             <Route index element={<BulkUploadImagesTab />} />
           </Route>
           

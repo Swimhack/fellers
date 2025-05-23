@@ -22,6 +22,11 @@ const AdminBulkUpload = () => {
 
   // Load saved images from localStorage when component mounts
   useEffect(() => {
+    loadSavedImages();
+  }, []);
+
+  // Separate function to load saved images from localStorage
+  const loadSavedImages = () => {
     const savedImagesString = localStorage.getItem('uploadedBulkImages');
     if (savedImagesString) {
       try {
@@ -29,9 +34,10 @@ const AdminBulkUpload = () => {
         setSavedImages(parsedImages);
       } catch (error) {
         console.error("Error parsing saved images:", error);
+        toast.error("Error loading saved images");
       }
     }
-  }, []);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
@@ -228,7 +234,7 @@ const AdminBulkUpload = () => {
         </CardContent>
       </Card>
       
-      {/* Saved Images Section */}
+      {/* Saved Images Section - Always show if there are images */}
       {savedImages.length > 0 && (
         <Card className="bg-fellers-darkBackground border border-gray-700">
           <CardHeader>
