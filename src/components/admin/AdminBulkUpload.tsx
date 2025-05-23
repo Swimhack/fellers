@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,9 +53,8 @@ const AdminBulkUpload = () => {
 
   const handleBulkUpload = () => {
     if (uploadedImages.length === 0) {
-      toast("No images to upload", {
+      toast.error("No images to upload", {
         description: "Please select at least one image to upload.",
-        variant: "destructive",
       });
       return;
     }
