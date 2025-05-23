@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
+import AdminDashboard from "./components/admin/AdminDashboard";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import "./App.css";
 
@@ -20,8 +21,8 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/admin/" element={<Navigate to="/admin" replace />} />
+          <Route path="/admin" element={<Navigate to="/admin/" replace />} />
+          <Route path="/admin/" element={<AdminDashboard />} />
           <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
           <Route path="/admin/dashboard/" element={<Navigate to="/admin/dashboard" replace />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
