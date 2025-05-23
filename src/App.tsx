@@ -21,7 +21,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/admin" element={<Navigate to="/admin/" replace />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="/admin/" element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
           <Route path="/admin/bulk-upload" element={<AdminBulkUploadPage />} />
