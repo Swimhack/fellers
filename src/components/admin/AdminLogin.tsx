@@ -1,0 +1,97 @@
+
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import FellersLogo from '@/components/FellersLogo';
+
+const DEFAULT_USERNAME = "admin";
+const DEFAULT_PASSWORD = "password";
+
+const AdminLogin = () => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    // Simulate API call delay
+    setTimeout(() => {
+      if (username === DEFAULT_USERNAME && password === DEFAULT_PASSWORD) {
+        // Set admin authentication in localStorage
+        localStorage.setItem("adminAuthenticated", "true");
+        
+        toast({
+          title: "Login successful",
+          description: "Welcome to the admin dashboard",
+        });
+        
+        navigate("/admin/dashboard");
+      } else {
+        toast({
+          title: "Login failed",
+          description: "Invalid username or password",
+          variant: "destructive",
+        });
+      }
+      setIsLoading(false);
+    }, 800);
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1 flex flex-col items-center">
+          <FellersLogo size="default" />
+          <CardTitle className="text-2xl font-bold text-center mt-4">Admin Login</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="username" className="text-sm font-medium">Username</label>
+              <Input 
+                id="username"
+                type="text" 
+                placeholder="Enter username" 
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="password" className="text-sm font-medium">Password</label>
+              <Input 
+                id="password"
+                type="password" 
+                placeholder="Enter password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <Button 
+              type="submit" 
+              className="w-full bg-fellers-green hover:bg-fellers-green/90"
+              disabled={isLoading}
+            >
+              {isLoading ? "Logging in..." : "Login"}
+            </Button>
+          </form>
+        </CardContent>
+        <CardFooter className="flex justify-center">
+          <p className="text-sm text-gray-500">
+            Default credentials: admin | password
+          </p>
+        </CardFooter>
+      </Card>
+    </div>
+  );
+};
+
+export default AdminLogin;

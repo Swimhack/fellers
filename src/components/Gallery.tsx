@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Carousel,
   CarouselContent,
@@ -10,8 +10,8 @@ import {
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-// Updated gallery images with heavy towing service related images
-const galleryImages = [
+// Default gallery images with heavy towing service related images
+const defaultGalleryImages = [
   "/lovable-uploads/87ba276a-1d9f-4e50-b096-524af87702c9.png", // Keeping the user's uploaded tow truck image
   "/lovable-uploads/eec8e3aa-b1ac-4cfb-9933-01465e9373e9.png", // Previous customer photo
   "/lovable-uploads/4c53b51a-0ccb-439e-b5b8-e1c8fbb9bf7a.png", // Adding the new heavy towing truck photo
@@ -20,8 +20,16 @@ const galleryImages = [
   "https://images.unsplash.com/photo-1607461042421-b47f193fe8e6?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" // Heavy vehicle recovery
 ];
 
+interface GalleryImage {
+  id: number;
+  url: string;
+  alt: string;
+  order: number;
+}
+
 const Gallery = () => {
   const isMobile = useIsMobile();
+  const [galleryImages, setGalleryImages] = useState<string[]>(defaultGalleryImages);
 
   useEffect(() => {
     // Preload gallery images
@@ -29,6 +37,21 @@ const Gallery = () => {
       const img = new Image();
       img.src = src;
     });
+  }, [galleryImages]);
+
+  useEffect(() => {
+    // Check if we have images in localStorage from admin dashboard
+    const savedImages = localStorage.getItem('galleryImages');
+    if (savedImages) {
+      try {
+        const parsedImages: GalleryImage[] = JSON.parse(savedImages);
+        // Sort by order property before extracting URLs
+        const sortedImages = [...parsedImages].sort((a, b) => a.order - b.order);
+        setGalleryImages(sortedImages.map(img => img.url));
+      } catch (error) {
+        console.error("Error parsing gallery images from localStorage:", error);
+      }
+    }
   }, []);
 
   return (
