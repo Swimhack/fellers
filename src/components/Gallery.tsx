@@ -13,11 +13,11 @@ import { useIsMobile } from '@/hooks/use-mobile';
 // Updated gallery images with heavy towing service related images
 const galleryImages = [
   "/lovable-uploads/87ba276a-1d9f-4e50-b096-524af87702c9.png", // Keeping the user's uploaded tow truck image
-  "/lovable-uploads/eec8e3aa-b1ac-4cfb-9933-01465e9373e9.png", // Adding the new customer photo
+  "/lovable-uploads/eec8e3aa-b1ac-4cfb-9933-01465e9373e9.png", // Previous customer photo
+  "/lovable-uploads/4c53b51a-0ccb-439e-b5b8-e1c8fbb9bf7a.png", // Adding the new heavy towing truck photo
   "https://images.unsplash.com/photo-1626964737076-ecb6b6a72d4f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80", // Heavy tow truck
   "https://images.unsplash.com/photo-1598488035139-bd3eecb95fca?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80", // Tow truck in action
-  "https://images.unsplash.com/photo-1607461042421-b47f193fe8e6?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80", // Heavy vehicle recovery
-  "https://images.unsplash.com/photo-1599256872237-5feccd4a1980?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"  // Heavy duty towing
+  "https://images.unsplash.com/photo-1607461042421-b47f193fe8e6?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" // Heavy vehicle recovery
 ];
 
 const Gallery = () => {
