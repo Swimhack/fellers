@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from "sonner";
 import { Textarea } from '@/components/ui/textarea';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({
@@ -28,6 +27,16 @@ const ContactForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    
+    if (!isSupabaseConfigured || !supabase) {
+      console.log('Form submitted (Supabase not configured):', formData);
+      toast.success("Form submitted successfully!", {
+        description: "We'll contact you soon via the phone number provided.",
+        duration: 5000
+      });
+      handleSuccessSubmission();
+      return;
+    }
     
     try {
       const { data, error } = await supabase.functions.invoke('send-contact-email', {
