@@ -7,14 +7,14 @@ const services = [
   { icon: <ArrowUpDown />, name: 'Load Transfers' },
   { icon: <Car />, name: 'Light / Medium Towing & Recovery' },
   { icon: <RefreshCw />, name: 'Swap Outs' },
-  { icon: <Forklift />, name: 'Landoll Service*', isSublet: true },
   { icon: <Construction />, name: 'Rotator / Mobile Crane' },
   { icon: <Anchor />, name: 'Winch Outs' },
   { icon: <Layers />, name: 'Decking / Undecking' },
   { icon: <Wrench />, name: 'Minor Roadside Assistance' },
   { icon: <Map />, name: 'Local & Long Distance' },
-  { icon: <AlertTriangle />, name: 'Hazmat Cleanup*', isSublet: true },
-  { icon: <Compass />, name: 'Load Shifts' }
+  { icon: <Compass />, name: 'Load Shifts' },
+  { icon: <Forklift />, name: 'Landoll Service*', isSublet: true },
+  { icon: <AlertTriangle />, name: 'Hazmat Cleanup*', isSublet: true }
 ];
 
 const ServicesGrid = () => {
