@@ -170,9 +170,14 @@ const ContactForm = () => {
                   ) : 'SEND REQUEST'}
                 </Button>
                 
-                <p className="text-center text-xs text-fellers-white/60 pt-4">
-                  For immediate assistance, call our dispatch at <a href="tel:9366629930" className="text-fellers-green">936-662-9930</a>
-                </p>
+                <div className="text-center text-xs text-fellers-white/60 pt-4 space-y-2">
+                  <p>
+                    For immediate assistance, call our dispatch at <a href="tel:9366629930" className="text-fellers-green">936-662-9930</a>
+                  </p>
+                  <p className="text-fellers-white/50">
+                    * Landoll services and hazmat cleanup are provided through our trusted subcontractor network
+                  </p>
+                </div>
               </form>
             </CardContent>
           </Card>

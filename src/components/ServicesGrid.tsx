@@ -7,13 +7,13 @@ const services = [
   { icon: <ArrowUpDown />, name: 'Load Transfers' },
   { icon: <Car />, name: 'Light / Medium Towing & Recovery' },
   { icon: <RefreshCw />, name: 'Swap Outs' },
-  { icon: <Forklift />, name: 'Landoll Service' },
+  { icon: <Forklift />, name: 'Landoll Service*', isSublet: true },
   { icon: <Construction />, name: 'Rotator / Mobile Crane' },
   { icon: <Anchor />, name: 'Winch Outs' },
   { icon: <Layers />, name: 'Decking / Undecking' },
   { icon: <Wrench />, name: 'Minor Roadside Assistance' },
   { icon: <Map />, name: 'Local & Long Distance' },
-  { icon: <AlertTriangle />, name: 'Hazmat Cleanup' },
+  { icon: <AlertTriangle />, name: 'Hazmat Cleanup*', isSublet: true },
   { icon: <Compass />, name: 'Load Shifts' }
 ];
 
@@ -36,6 +36,12 @@ const ServicesGrid = () => {
               <h3 className="text-center text-white text-sm sm:text-base font-semibold">{service.name}</h3>
             </div>
           ))}
+        </div>
+        
+        <div className="mt-8 text-center">
+          <p className="text-sm text-fellers-white/60">
+            * Services provided through our trusted subcontractor network
+          </p>
         </div>
       </div>
     </section>
