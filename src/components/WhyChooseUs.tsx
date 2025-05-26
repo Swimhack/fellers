@@ -21,8 +21,8 @@ const WhyChooseUs = () => {
           <div className="animate-fade-in-up order-2 lg:order-1">
             <div className="rounded-lg overflow-hidden shadow-2xl">
               <img 
-                src="https://images.unsplash.com/photo-1605810230434-7631ac76ec81?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" 
-                alt="Professional team of heavy-duty towing specialists working together" 
+                src="/lovable-uploads/6172ff99-ae73-49cd-85d9-181361c7c1ef.png" 
+                alt="Fellers Resources heavy-duty towing equipment and recovery cranes in operation" 
                 className="w-full h-full object-cover"
                 loading="lazy"
               />
