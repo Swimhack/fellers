@@ -7,13 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from "sonner";
 import { Textarea } from '@/components/ui/textarea';
-import emailjs from 'emailjs-com';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-
-// EmailJS constants - replace these with your own
-const EMAIL_SERVICE_ID = "YOUR_EMAILJS_SERVICE_ID";
-const EMAIL_TEMPLATE_ID = "YOUR_EMAILJS_TEMPLATE_ID";
-const EMAIL_USER_ID = "YOUR_EMAILJS_USER_ID";
+import { supabase } from '@/integrations/supabase/client';
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({
@@ -25,16 +19,6 @@ const ContactForm = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [showEmailJSAlert, setShowEmailJSAlert] = useState(false);
-  
-  useEffect(() => {
-    // Check if EmailJS credentials are set
-    if (EMAIL_SERVICE_ID === "YOUR_EMAILJS_SERVICE_ID" || 
-        EMAIL_TEMPLATE_ID === "YOUR_EMAILJS_TEMPLATE_ID" || 
-        EMAIL_USER_ID === "YOUR_EMAILJS_USER_ID") {
-      setShowEmailJSAlert(true);
-    }
-  }, []);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -46,31 +30,19 @@ const ContactForm = () => {
     setIsSubmitting(true);
     
     try {
-      // If EmailJS is not configured, use the fallback simulation
-      if (showEmailJSAlert) {
-        // Simulate form submission
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        handleSuccessSubmission();
-        return;
+      const { data, error } = await supabase.functions.invoke('send-contact-email', {
+        body: {
+          name: formData.name,
+          phone: formData.phone,
+          email: formData.email || "No email provided",
+          location: formData.location,
+          details: formData.details
+        }
+      });
+
+      if (error) {
+        throw error;
       }
-      
-      // Prepare the template parameters
-      const templateParams = {
-        from_name: formData.name,
-        from_phone: formData.phone,
-        from_email: formData.email || "No email provided",
-        location: formData.location,
-        message: formData.details,
-        reply_to: formData.email || ""
-      };
-      
-      // Send the email using EmailJS
-      await emailjs.send(
-        EMAIL_SERVICE_ID,
-        EMAIL_TEMPLATE_ID,
-        templateParams,
-        EMAIL_USER_ID
-      );
       
       handleSuccessSubmission();
     } catch (error) {
@@ -110,14 +82,6 @@ const ContactForm = () => {
           <p className="text-center text-lg mb-12 text-fellers-white/90">
             Need assistance? Fill out the form below and we'll dispatch a team right away.
           </p>
-          
-          {showEmailJSAlert && (
-            <Alert className="mb-6 bg-amber-500/10 border-amber-500/50 text-amber-100">
-              <AlertDescription>
-                EmailJS configuration required. Replace the EmailJS constants at the top of the ContactForm.tsx file with your own credentials.
-              </AlertDescription>
-            </Alert>
-          )}
           
           <Card className="bg-black/40 backdrop-blur-sm border-fellers-green/30">
             <CardHeader>
