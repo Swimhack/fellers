@@ -8,6 +8,7 @@ import WhyChooseUs from '@/components/WhyChooseUs';
 import Gallery from '@/components/Gallery';
 import ServiceMap from '@/components/ServiceMap';
 import Testimonials from '@/components/Testimonials';
+import GoogleReviews from '@/components/GoogleReviews';
 import ContactForm from '@/components/ContactForm';
 import MobileBottomBar from '@/components/MobileBottomBar';
 import Footer from '@/components/Footer';
@@ -37,6 +38,7 @@ const Index = () => {
           <Gallery />
           <ServiceMap />
           <Testimonials />
+          <GoogleReviews />
           <ContactForm />
         </main>
         <MobileBottomBar />
