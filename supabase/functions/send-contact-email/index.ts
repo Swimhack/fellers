@@ -26,7 +26,7 @@ serve(async (req) => {
 
     // Prepare the email content
     const emailData = new FormData()
-    emailData.append('from', `Contact Form <noreply@${MAILGUN_DOMAIN}>`)
+    emailData.append('from', 'dispatch@fellersresources.com')
     emailData.append('to', TO_EMAIL)
     emailData.append('subject', `New Service Request from ${name}`)
     emailData.append('text', `
