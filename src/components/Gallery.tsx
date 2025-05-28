@@ -12,12 +12,12 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 // Default gallery images with heavy towing service related images
 const defaultGalleryImages = [
-  "/lovable-uploads/87ba276a-1d9f-4e50-b096-524af87702c9.png", // Keeping the user's uploaded tow truck image
-  "/lovable-uploads/eec8e3aa-b1ac-4cfb-9933-01465e9373e9.png", // Previous customer photo
-  "/lovable-uploads/4c53b51a-0ccb-439e-b5b8-e1c8fbb9bf7a.png", // Adding the new heavy towing truck photo
-  "https://images.unsplash.com/photo-1626964737076-ecb6b6a72d4f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80", // Heavy tow truck
-  "https://images.unsplash.com/photo-1598488035139-bd3eecb95fca?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80", // Tow truck in action
-  "https://images.unsplash.com/photo-1607461042421-b47f193fe8e6?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" // Heavy vehicle recovery
+  "/lovable-uploads/87ba276a-1d9f-4e50-b096-524af87702c9.png",
+  "/lovable-uploads/eec8e3aa-b1ac-4cfb-9933-01465e9373e9.png",
+  "/lovable-uploads/4c53b51a-0ccb-439e-b5b8-e1c8fbb9bf7a.png",
+  "https://images.unsplash.com/photo-1626964737076-ecb6b6a72d4f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+  "https://images.unsplash.com/photo-1598488035139-bd3eecb95fca?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+  "https://images.unsplash.com/photo-1607461042421-b47f193fe8e6?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
 ];
 
 interface GalleryImage {
@@ -31,6 +31,49 @@ const Gallery = () => {
   const isMobile = useIsMobile();
   const [galleryImages, setGalleryImages] = useState<string[]>(defaultGalleryImages);
 
+  const loadGalleryImages = () => {
+    const savedImages = localStorage.getItem('galleryImages');
+    if (savedImages) {
+      try {
+        const parsedImages: GalleryImage[] = JSON.parse(savedImages);
+        const sortedImages = [...parsedImages].sort((a, b) => a.order - b.order);
+        setGalleryImages(sortedImages.map(img => img.url));
+      } catch (error) {
+        console.error("Error parsing gallery images from localStorage:", error);
+        setGalleryImages(defaultGalleryImages);
+      }
+    } else {
+      setGalleryImages(defaultGalleryImages);
+    }
+  };
+
+  useEffect(() => {
+    // Initial load
+    loadGalleryImages();
+
+    // Listen for storage changes (when admin makes changes)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'galleryImages') {
+        console.log('Gallery images updated from admin dashboard');
+        loadGalleryImages();
+      }
+    };
+
+    // Listen for custom events (for same-tab updates)
+    const handleGalleryUpdate = () => {
+      console.log('Gallery images updated via custom event');
+      loadGalleryImages();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('galleryImagesUpdated', handleGalleryUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('galleryImagesUpdated', handleGalleryUpdate);
+    };
+  }, []);
+
   useEffect(() => {
     // Preload gallery images
     galleryImages.forEach(src => {
@@ -38,21 +81,6 @@ const Gallery = () => {
       img.src = src;
     });
   }, [galleryImages]);
-
-  useEffect(() => {
-    // Check if we have images in localStorage from admin dashboard
-    const savedImages = localStorage.getItem('galleryImages');
-    if (savedImages) {
-      try {
-        const parsedImages: GalleryImage[] = JSON.parse(savedImages);
-        // Sort by order property before extracting URLs
-        const sortedImages = [...parsedImages].sort((a, b) => a.order - b.order);
-        setGalleryImages(sortedImages.map(img => img.url));
-      } catch (error) {
-        console.error("Error parsing gallery images from localStorage:", error);
-      }
-    }
-  }, []);
 
   return (
     <section id="gallery" className="section-padding gradient-bg">

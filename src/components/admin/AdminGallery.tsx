@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -47,6 +46,13 @@ const AdminGallery = () => {
   const [imageToDelete, setImageToDelete] = useState<number | null>(null);
   const { toast } = useToast();
 
+  // Helper function to trigger gallery update events
+  const triggerGalleryUpdate = () => {
+    // Dispatch custom event for same-tab updates
+    window.dispatchEvent(new CustomEvent('galleryImagesUpdated'));
+    console.log('Gallery update event triggered');
+  };
+
   useEffect(() => {
     // Initialize gallery images from the array
     const formattedImages = initialGalleryImages.map((url, index) => ({
@@ -69,6 +75,7 @@ const AdminGallery = () => {
   useEffect(() => {
     if (galleryImages.length > 0) {
       localStorage.setItem('galleryImages', JSON.stringify(galleryImages));
+      triggerGalleryUpdate();
     }
   }, [galleryImages]);
 
@@ -95,7 +102,7 @@ const AdminGallery = () => {
 
     toast({
       title: "Success",
-      description: "Image added successfully",
+      description: "Image added successfully and updated on front-end",
     });
   };
 
@@ -118,7 +125,7 @@ const AdminGallery = () => {
 
       toast({
         title: "Success",
-        description: "Image removed successfully",
+        description: "Image removed successfully and updated on front-end",
       });
     }
   };
@@ -137,6 +144,11 @@ const AdminGallery = () => {
     });
     
     setGalleryImages(newImages);
+
+    toast({
+      title: "Success",
+      description: "Image order updated on front-end",
+    });
   };
 
   const handleMoveDown = (index: number) => {
@@ -153,6 +165,11 @@ const AdminGallery = () => {
     });
     
     setGalleryImages(newImages);
+
+    toast({
+      title: "Success",
+      description: "Image order updated on front-end",
+    });
   };
 
   const handleUpdateAlt = (id: number, newAlt: string) => {
