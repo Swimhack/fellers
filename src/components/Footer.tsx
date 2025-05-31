@@ -37,9 +37,14 @@ const Footer = () => {
         
         <div className="border-t border-fellers-green/20 pt-8 mt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-white/90 text-sm mb-4 md:mb-0">
-              &copy; {currentYear} Fellers Resources, LLC. All rights reserved.
-            </p>
+            <div className="mb-4 md:mb-0">
+              <p className="text-white/90 text-sm mb-2">
+                &copy; {currentYear} Fellers Resources, LLC. All rights reserved.
+              </p>
+              <p className="text-white/90 text-sm">
+                Powered by <a href="http://www.Stricklandtechnology.net" target="_blank" title="ai web design" className="text-fellers-green hover:text-white transition-colors">Strickland Technology</a>
+              </p>
+            </div>
             
             <div>
               <p className="text-white/90 text-sm">
