@@ -21,6 +21,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 // Import the same gallery images array used in Gallery component
 const initialGalleryImages = [
@@ -44,6 +50,7 @@ const AdminGallery = () => {
   const [newImageUrl, setNewImageUrl] = useState("");
   const [newImageAlt, setNewImageAlt] = useState("");
   const [imageToDelete, setImageToDelete] = useState<number | null>(null);
+  const [enlargedImage, setEnlargedImage] = useState<GalleryImage | null>(null);
   const { toast } = useToast();
 
   // Helper function to trigger gallery update events
@@ -179,6 +186,10 @@ const AdminGallery = () => {
     setGalleryImages(updatedImages);
   };
 
+  const handleImageClick = (image: GalleryImage) => {
+    setEnlargedImage(image);
+  };
+
   return (
     <div className="space-y-8 p-6">
       <Card>
@@ -232,7 +243,10 @@ const AdminGallery = () => {
               {galleryImages.map((image, index) => (
                 <TableRow key={image.id}>
                   <TableCell>
-                    <div className="w-16 h-16 relative">
+                    <div 
+                      className="w-16 h-16 relative cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => handleImageClick(image)}
+                    >
                       <img 
                         src={image.url} 
                         alt={image.alt} 
@@ -286,6 +300,27 @@ const AdminGallery = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Image Enlargement Dialog */}
+      <Dialog open={enlargedImage !== null} onOpenChange={() => setEnlargedImage(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>{enlargedImage?.alt || 'Gallery Image'}</DialogTitle>
+          </DialogHeader>
+          <div className="flex justify-center">
+            {enlargedImage && (
+              <img 
+                src={enlargedImage.url} 
+                alt={enlargedImage.alt}
+                className="max-w-full max-h-[70vh] object-contain rounded-lg"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "https://via.placeholder.com/400?text=Error+Loading+Image";
+                }}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Confirmation Dialog */}
       <AlertDialog open={imageToDelete !== null} onOpenChange={() => setImageToDelete(null)}>
