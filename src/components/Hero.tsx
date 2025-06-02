@@ -1,21 +1,72 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Phone } from 'lucide-react';
 import FellersLogo from './FellersLogo';
 import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-// Updated with new truck image as first image
-const backgroundImages = [
-  "/lovable-uploads/046e5f95-7772-4564-888a-5026ab430faf.png",
-  "https://images.unsplash.com/photo-1591768793355-74d04bb6608f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-  "https://images.unsplash.com/photo-1581222666174-a767898328fc?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
-];
+interface GalleryImage {
+  id: number;
+  url: string;
+  alt: string;
+  order: number;
+}
+
+// Fallback image in case no admin images are available
+const fallbackImage = "/lovable-uploads/046e5f95-7772-4564-888a-5026ab430faf.png";
 
 const Hero = () => {
   const carouselRef = useRef(null);
   const isMobile = useIsMobile();
+  const [backgroundImages, setBackgroundImages] = useState<string[]>([fallbackImage]);
+  
+  const loadHeroImages = () => {
+    const savedImages = localStorage.getItem('galleryImages');
+    if (savedImages) {
+      try {
+        const parsedImages: GalleryImage[] = JSON.parse(savedImages);
+        if (parsedImages.length > 0) {
+          const sortedImages = [...parsedImages].sort((a, b) => a.order - b.order);
+          setBackgroundImages(sortedImages.map(img => img.url));
+        } else {
+          setBackgroundImages([fallbackImage]);
+        }
+      } catch (error) {
+        console.error("Error parsing gallery images for hero:", error);
+        setBackgroundImages([fallbackImage]);
+      }
+    } else {
+      setBackgroundImages([fallbackImage]);
+    }
+  };
+
+  useEffect(() => {
+    // Initial load
+    loadHeroImages();
+
+    // Listen for storage changes (when admin makes changes)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'galleryImages') {
+        console.log('Hero images updated from admin dashboard');
+        loadHeroImages();
+      }
+    };
+
+    // Listen for custom events (for same-tab updates)
+    const handleGalleryUpdate = () => {
+      console.log('Hero images updated via custom event');
+      loadHeroImages();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('galleryImagesUpdated', handleGalleryUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('galleryImagesUpdated', handleGalleryUpdate);
+    };
+  }, []);
   
   useEffect(() => {
     // Preload hero images
@@ -23,7 +74,7 @@ const Hero = () => {
       const img = new Image();
       img.src = src;
     });
-  }, []);
+  }, [backgroundImages]);
 
   return (
     <div className="relative min-h-[90vh] md:min-h-screen flex items-center overflow-hidden" id="hero">

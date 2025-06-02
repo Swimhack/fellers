@@ -10,16 +10,6 @@ import {
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-// Default gallery images with heavy towing service related images
-const defaultGalleryImages = [
-  "/lovable-uploads/87ba276a-1d9f-4e50-b096-524af87702c9.png",
-  "/lovable-uploads/eec8e3aa-b1ac-4cfb-9933-01465e9373e9.png",
-  "/lovable-uploads/4c53b51a-0ccb-439e-b5b8-e1c8fbb9bf7a.png",
-  "https://images.unsplash.com/photo-1626964737076-ecb6b6a72d4f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-  "https://images.unsplash.com/photo-1598488035139-bd3eecb95fca?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-  "https://images.unsplash.com/photo-1607461042421-b47f193fe8e6?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
-];
-
 interface GalleryImage {
   id: number;
   url: string;
@@ -29,7 +19,7 @@ interface GalleryImage {
 
 const Gallery = () => {
   const isMobile = useIsMobile();
-  const [galleryImages, setGalleryImages] = useState<string[]>(defaultGalleryImages);
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
 
   const loadGalleryImages = () => {
     const savedImages = localStorage.getItem('galleryImages');
@@ -40,10 +30,10 @@ const Gallery = () => {
         setGalleryImages(sortedImages.map(img => img.url));
       } catch (error) {
         console.error("Error parsing gallery images from localStorage:", error);
-        setGalleryImages(defaultGalleryImages);
+        setGalleryImages([]);
       }
     } else {
-      setGalleryImages(defaultGalleryImages);
+      setGalleryImages([]);
     }
   };
 
@@ -81,6 +71,11 @@ const Gallery = () => {
       img.src = src;
     });
   }, [galleryImages]);
+
+  // Don't render the gallery section if no images are available
+  if (galleryImages.length === 0) {
+    return null;
+  }
 
   return (
     <section id="gallery" className="section-padding gradient-bg">

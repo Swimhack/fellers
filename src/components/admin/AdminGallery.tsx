@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -28,16 +29,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-// Import the same gallery images array used in Gallery component
-const initialGalleryImages = [
-  "/lovable-uploads/87ba276a-1d9f-4e50-b096-524af87702c9.png",
-  "/lovable-uploads/eec8e3aa-b1ac-4cfb-9933-01465e9373e9.png",
-  "/lovable-uploads/4c53b51a-0ccb-439e-b5b8-e1c8fbb9bf7a.png",
-  "https://images.unsplash.com/photo-1626964737076-ecb6b6a72d4f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-  "https://images.unsplash.com/photo-1598488035139-bd3eecb95fca?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-  "https://images.unsplash.com/photo-1607461042421-b47f193fe8e6?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
-];
-
 interface GalleryImage {
   id: number;
   url: string;
@@ -61,29 +52,20 @@ const AdminGallery = () => {
   };
 
   useEffect(() => {
-    // Initialize gallery images from the array
-    const formattedImages = initialGalleryImages.map((url, index) => ({
-      id: index + 1,
-      url: url,
-      alt: `Fellers Resources heavy towing equipment ${index + 1}`,
-      order: index + 1
-    }));
-    
     // Check if we have saved images in localStorage
     const savedImages = localStorage.getItem('galleryImages');
     if (savedImages) {
       setGalleryImages(JSON.parse(savedImages));
     } else {
-      setGalleryImages(formattedImages);
+      // Start with empty gallery - admin needs to upload images
+      setGalleryImages([]);
     }
   }, []);
 
   // Save changes to localStorage whenever gallery images change
   useEffect(() => {
-    if (galleryImages.length > 0) {
-      localStorage.setItem('galleryImages', JSON.stringify(galleryImages));
-      triggerGalleryUpdate();
-    }
+    localStorage.setItem('galleryImages', JSON.stringify(galleryImages));
+    triggerGalleryUpdate();
   }, [galleryImages]);
 
   const handleAddImage = () => {
@@ -229,75 +211,81 @@ const AdminGallery = () => {
           <CardTitle>Manage Gallery Images ({galleryImages.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[100px]">Preview</TableHead>
-                <TableHead>Image URL</TableHead>
-                <TableHead>Alt Text</TableHead>
-                <TableHead>Order</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {galleryImages.map((image, index) => (
-                <TableRow key={image.id}>
-                  <TableCell>
-                    <div 
-                      className="w-16 h-16 relative cursor-pointer hover:opacity-80 transition-opacity"
-                      onClick={() => handleImageClick(image)}
-                    >
-                      <img 
-                        src={image.url} 
-                        alt={image.alt} 
-                        className="object-cover w-full h-full rounded-md"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = "https://via.placeholder.com/150?text=Error";
-                        }}
-                      />
-                    </div>
-                  </TableCell>
-                  <TableCell className="max-w-[200px] truncate">
-                    {image.url}
-                  </TableCell>
-                  <TableCell>
-                    <Input 
-                      value={image.alt} 
-                      onChange={(e) => handleUpdateAlt(image.id, e.target.value)}
-                    />
-                  </TableCell>
-                  <TableCell>{image.order}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleMoveUp(index)}
-                        disabled={index === 0}
-                      >
-                        ↑
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleMoveDown(index)}
-                        disabled={index === galleryImages.length - 1}
-                      >
-                        ↓
-                      </Button>
-                      <Button 
-                        variant="destructive" 
-                        size="sm" 
-                        onClick={() => handleRemoveImage(image.id)}
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  </TableCell>
+          {galleryImages.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <p>No images in gallery yet. Add some images to get started!</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px]">Preview</TableHead>
+                  <TableHead>Image URL</TableHead>
+                  <TableHead>Alt Text</TableHead>
+                  <TableHead>Order</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {galleryImages.map((image, index) => (
+                  <TableRow key={image.id}>
+                    <TableCell>
+                      <div 
+                        className="w-16 h-16 relative cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => handleImageClick(image)}
+                      >
+                        <img 
+                          src={image.url} 
+                          alt={image.alt} 
+                          className="object-cover w-full h-full rounded-md"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "https://via.placeholder.com/150?text=Error";
+                          }}
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell className="max-w-[200px] truncate">
+                      {image.url}
+                    </TableCell>
+                    <TableCell>
+                      <Input 
+                        value={image.alt} 
+                        onChange={(e) => handleUpdateAlt(image.id, e.target.value)}
+                      />
+                    </TableCell>
+                    <TableCell>{image.order}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleMoveUp(index)}
+                          disabled={index === 0}
+                        >
+                          ↑
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleMoveDown(index)}
+                          disabled={index === galleryImages.length - 1}
+                        >
+                          ↓
+                        </Button>
+                        <Button 
+                          variant="destructive" 
+                          size="sm" 
+                          onClick={() => handleRemoveImage(image.id)}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 
@@ -339,6 +327,110 @@ const AdminGallery = () => {
       </AlertDialog>
     </div>
   );
+
+  function handleAddImage() {
+    if (!newImageUrl) {
+      toast({
+        title: "Error",
+        description: "Please enter an image URL",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newImage: GalleryImage = {
+      id: galleryImages.length > 0 ? Math.max(...galleryImages.map(img => img.id)) + 1 : 1,
+      url: newImageUrl,
+      alt: newImageAlt || `Fellers Resources heavy towing equipment ${galleryImages.length + 1}`,
+      order: galleryImages.length + 1
+    };
+
+    setGalleryImages([...galleryImages, newImage]);
+    setNewImageUrl("");
+    setNewImageAlt("");
+
+    toast({
+      title: "Success",
+      description: "Image added successfully and updated on front-end",
+    });
+  }
+
+  function handleRemoveImage(id: number) {
+    setImageToDelete(id);
+  }
+
+  function confirmDelete() {
+    if (imageToDelete !== null) {
+      const updatedImages = galleryImages.filter(img => img.id !== imageToDelete);
+      
+      // Update order values
+      const reorderedImages = updatedImages.map((img, index) => ({
+        ...img,
+        order: index + 1
+      }));
+      
+      setGalleryImages(reorderedImages);
+      setImageToDelete(null);
+
+      toast({
+        title: "Success",
+        description: "Image removed successfully and updated on front-end",
+      });
+    }
+  }
+
+  function handleMoveUp(index: number) {
+    if (index === 0) return;
+    
+    const newImages = [...galleryImages];
+    const temp = newImages[index];
+    newImages[index] = newImages[index - 1];
+    newImages[index - 1] = temp;
+    
+    // Update order values
+    newImages.forEach((img, idx) => {
+      img.order = idx + 1;
+    });
+    
+    setGalleryImages(newImages);
+
+    toast({
+      title: "Success",
+      description: "Image order updated on front-end",
+    });
+  }
+
+  function handleMoveDown(index: number) {
+    if (index === galleryImages.length - 1) return;
+    
+    const newImages = [...galleryImages];
+    const temp = newImages[index];
+    newImages[index] = newImages[index + 1];
+    newImages[index + 1] = temp;
+    
+    // Update order values
+    newImages.forEach((img, idx) => {
+      img.order = idx + 1;
+    });
+    
+    setGalleryImages(newImages);
+
+    toast({
+      title: "Success",
+      description: "Image order updated on front-end",
+    });
+  }
+
+  function handleUpdateAlt(id: number, newAlt: string) {
+    const updatedImages = galleryImages.map(img => 
+      img.id === id ? { ...img, alt: newAlt } : img
+    );
+    setGalleryImages(updatedImages);
+  }
+
+  function handleImageClick(image: GalleryImage) {
+    setEnlargedImage(image);
+  }
 };
 
 export default AdminGallery;
