@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import FellersLogo from '@/components/FellersLogo';
 
 const DEFAULT_USERNAME = "admin";
@@ -84,11 +84,6 @@ const AdminLogin = () => {
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-sm text-gray-500">
-            Default credentials: admin | password
-          </p>
-        </CardFooter>
       </Card>
     </div>
   );
