@@ -9,6 +9,7 @@ import {
   processBulkUpload,
   fileToBase64
 } from '@/utils/imageHandlerUtils';
+import { filterGalleryImages, isValidGalleryImage } from '@/utils/galleryUtils';
 
 export const useBulkImageUpload = () => {
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
@@ -20,11 +21,20 @@ export const useBulkImageUpload = () => {
     loadSavedImages();
   }, []);
 
-  // Load saved images from localStorage
+  // Load saved images from localStorage and filter to only show /lovable-uploads/ images
   const loadSavedImages = () => {
     const images = loadSavedImagesFromStorage();
     if (images) {
-      setSavedImages(images);
+      // Filter to only show images from /lovable-uploads/ directory
+      const filteredImages = images.filter((image: UploadedImage) => 
+        isValidGalleryImage(image.preview)
+      );
+      setSavedImages(filteredImages);
+      
+      // Update localStorage if we filtered out any images
+      if (filteredImages.length !== images.length) {
+        localStorage.setItem('uploadedBulkImages', JSON.stringify(filteredImages));
+      }
     } else {
       toast.error("Error loading saved images");
     }
