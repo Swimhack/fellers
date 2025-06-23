@@ -2,7 +2,6 @@
 import React, { useRef } from 'react';
 import { Upload } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { UploadedImage } from "@/utils/imageHandlerUtils";
 
 interface ImageUploadAreaProps {
   onFileChange: (files: File[]) => void;
@@ -22,7 +21,7 @@ const ImageUploadArea: React.FC<ImageUploadAreaProps> = ({ onFileChange }) => {
   };
 
   return (
-    <div className="border-2 border-dashed border-gray-500 rounded-lg p-6 text-center">
+    <div className="border-2 border-dashed border-gray-500 rounded-lg p-8 text-center hover:border-gray-400 transition-colors">
       <Input
         type="file"
         ref={fileInputRef}
@@ -34,11 +33,13 @@ const ImageUploadArea: React.FC<ImageUploadAreaProps> = ({ onFileChange }) => {
       />
       <label 
         htmlFor="image-upload" 
-        className="flex flex-col items-center justify-center cursor-pointer"
+        className="flex flex-col items-center justify-center cursor-pointer space-y-4"
       >
-        <Upload className="w-12 h-12 text-gray-300" />
-        <p className="mt-2 text-sm text-gray-300">Click to select images or drag and drop</p>
-        <p className="text-xs text-gray-400 mt-1">Supports: JPG, PNG, GIF</p>
+        <Upload className="w-16 h-16 text-gray-300" />
+        <div className="space-y-2">
+          <p className="text-lg font-medium text-gray-300">Click to select images or drag and drop</p>
+          <p className="text-sm text-gray-400">Supports: JPG, PNG, GIF</p>
+        </div>
       </label>
     </div>
   );

@@ -18,38 +18,38 @@ const SavedImagesGrid: React.FC<SavedImagesGridProps> = ({
   if (images.length === 0) return null;
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
       {images.map((image) => (
         <div key={image.id} className="relative group">
-          <div className="aspect-video rounded-md overflow-hidden border border-gray-600">
+          <div className="aspect-video rounded-lg overflow-hidden border border-gray-600 bg-gray-800">
             <img 
               src={image.preview} 
               alt={`Preview ${image.name}`} 
               className="w-full h-full object-cover"
             />
           </div>
-          <div className="absolute top-1 right-1 flex gap-1">
+          <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <Button
               size="icon"
               variant="outline"
-              className="size-8 bg-fellers-darkBackground hover:bg-fellers-inputBackground opacity-0 group-hover:opacity-100 transition-opacity border-gray-600"
+              className="h-8 w-8 bg-green-600 hover:bg-green-700 border-green-600 text-white"
               onClick={() => onDownload(image)}
             >
-              <Download className="size-4 text-fellers-green" />
+              <Download className="h-4 w-4" />
               <span className="sr-only">Download</span>
             </Button>
             <Button
               size="icon"
               variant="outline"
-              className="size-8 bg-fellers-darkBackground hover:bg-fellers-inputBackground text-red-500 opacity-0 group-hover:opacity-100 transition-opacity border-gray-600"
+              className="h-8 w-8 bg-red-600 hover:bg-red-700 border-red-600 text-white"
               onClick={() => onRemove(image.id)}
             >
+              <span className="text-sm font-bold">&times;</span>
               <span className="sr-only">Remove</span>
-              &times;
             </Button>
           </div>
-          <div className="mt-1 space-y-1">
-            <p className="text-xs text-gray-300 truncate">{image.name}</p>
+          <div className="mt-3 px-1 space-y-1">
+            <p className="text-sm text-gray-300 truncate font-medium">{image.name}</p>
             <p className="text-xs text-gray-400">{formatDate(image.uploadDate)}</p>
           </div>
         </div>
