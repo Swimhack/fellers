@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { GalleryImage } from '@/types/gallery';
-import { validateImageUrl } from '@/utils/galleryUtils';
+import { validateImageUrl, isValidGalleryImage } from '@/utils/galleryUtils';
 
 interface GalleryImageUploadProps {
   galleryImages: GalleryImage[];
@@ -22,6 +22,15 @@ const GalleryImageUpload = ({ galleryImages, onAddImage }: GalleryImageUploadPro
       toast({
         title: "Error",
         description: "Please enter an image URL",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!isValidGalleryImage(newImageUrl)) {
+      toast({
+        title: "Error",
+        description: "Only images from /lovable-uploads/ directory are allowed",
         variant: "destructive",
       });
       return;
@@ -64,7 +73,7 @@ const GalleryImageUpload = ({ galleryImages, onAddImage }: GalleryImageUploadPro
           <div className="md:col-span-2">
             <Input
               type="text"
-              placeholder="Enter image URL"
+              placeholder="Enter image URL (/lovable-uploads/ only)"
               value={newImageUrl}
               onChange={(e) => setNewImageUrl(e.target.value)}
             />

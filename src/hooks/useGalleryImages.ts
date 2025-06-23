@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { GalleryImage, ImageLoadState } from '@/types/gallery';
-import { triggerGalleryUpdate } from '@/utils/galleryUtils';
+import { triggerGalleryUpdate, filterGalleryImages } from '@/utils/galleryUtils';
 
 export const useGalleryImages = () => {
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
@@ -37,8 +36,14 @@ export const useGalleryImages = () => {
     if (savedImages) {
       try {
         const parsedImages = JSON.parse(savedImages);
-        setGalleryImages(parsedImages);
-        preloadImages(parsedImages);
+        const filteredImages = filterGalleryImages(parsedImages);
+        setGalleryImages(filteredImages);
+        preloadImages(filteredImages);
+        
+        // Update localStorage with filtered images if any were removed
+        if (filteredImages.length !== parsedImages.length) {
+          localStorage.setItem('galleryImages', JSON.stringify(filteredImages));
+        }
       } catch (error) {
         console.error('Error parsing gallery images:', error);
         setGalleryImages([]);

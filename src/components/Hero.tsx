@@ -1,10 +1,10 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { Phone } from 'lucide-react';
 import FellersLogo from './FellersLogo';
 import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { filterGalleryImages } from '@/utils/galleryUtils';
 
 interface GalleryImage {
   id: number;
@@ -26,11 +26,18 @@ const Hero = () => {
     if (savedImages) {
       try {
         const parsedImages: GalleryImage[] = JSON.parse(savedImages);
-        if (parsedImages.length > 0) {
-          const sortedImages = [...parsedImages].sort((a, b) => a.order - b.order);
+        const filteredImages = filterGalleryImages(parsedImages);
+        
+        if (filteredImages.length > 0) {
+          const sortedImages = [...filteredImages].sort((a, b) => a.order - b.order);
           setBackgroundImages(sortedImages.map(img => img.url));
         } else {
           setBackgroundImages([fallbackImage]);
+        }
+        
+        // Update localStorage with filtered images if any were removed
+        if (filteredImages.length !== parsedImages.length) {
+          localStorage.setItem('galleryImages', JSON.stringify(filteredImages));
         }
       } catch (error) {
         console.error("Error parsing gallery images for hero:", error);

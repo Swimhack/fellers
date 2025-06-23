@@ -12,3 +12,11 @@ export const validateImageUrl = async (url: string): Promise<boolean> => {
     img.src = url;
   });
 };
+
+export const isValidGalleryImage = (url: string): boolean => {
+  return url.includes('/lovable-uploads/');
+};
+
+export const filterGalleryImages = (images: any[]): any[] => {
+  return images.filter(image => isValidGalleryImage(image.url));
+};

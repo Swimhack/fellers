@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/carousel";
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { filterGalleryImages } from '@/utils/galleryUtils';
 
 interface GalleryImage {
   id: number;
@@ -26,8 +27,19 @@ const Gallery = () => {
     if (savedImages) {
       try {
         const parsedImages: GalleryImage[] = JSON.parse(savedImages);
-        const sortedImages = [...parsedImages].sort((a, b) => a.order - b.order);
-        setGalleryImages(sortedImages.map(img => img.url));
+        const filteredImages = filterGalleryImages(parsedImages);
+        
+        if (filteredImages.length > 0) {
+          const sortedImages = [...filteredImages].sort((a, b) => a.order - b.order);
+          setGalleryImages(sortedImages.map(img => img.url));
+        } else {
+          setGalleryImages([]);
+        }
+        
+        // Update localStorage with filtered images if any were removed
+        if (filteredImages.length !== parsedImages.length) {
+          localStorage.setItem('galleryImages', JSON.stringify(filteredImages));
+        }
       } catch (error) {
         console.error("Error parsing gallery images from localStorage:", error);
         setGalleryImages([]);
