@@ -6,7 +6,8 @@ import {
   loadSavedImagesFromStorage, 
   removeFromGallery,
   downloadImage,
-  processBulkUpload
+  processBulkUpload,
+  fileToBase64
 } from '@/utils/imageHandlerUtils';
 
 export const useBulkImageUpload = () => {
@@ -29,36 +30,34 @@ export const useBulkImageUpload = () => {
     }
   };
 
-  const handleFileChange = (newFiles: File[]) => {
+  const handleFileChange = async (newFiles: File[]) => {
     const newImages: UploadedImage[] = [];
     
-    newFiles.forEach(file => {
+    for (const file of newFiles) {
       // Only process image files
-      if (!file.type.startsWith('image/')) return;
+      if (!file.type.startsWith('image/')) continue;
       
-      const preview = URL.createObjectURL(file);
-      newImages.push({
-        id: Date.now() + Math.random(),
-        file,
-        preview,
-        name: file.name,
-        uploadDate: new Date().toISOString()
-      });
-    });
+      try {
+        // Convert to base64 immediately for better reliability
+        const base64Preview = await fileToBase64(file);
+        newImages.push({
+          id: Date.now() + Math.random(),
+          file,
+          preview: base64Preview,
+          name: file.name,
+          uploadDate: new Date().toISOString()
+        });
+      } catch (error) {
+        console.error("Error processing file:", file.name, error);
+        toast.error(`Error processing ${file.name}`);
+      }
+    }
 
     setUploadedImages(prev => [...prev, ...newImages]);
   };
 
   const handleRemoveImage = (id: number) => {
-    setUploadedImages(prev => {
-      const filtered = prev.filter(image => image.id !== id);
-      // Revoke object URL to avoid memory leaks
-      const imageToRemove = prev.find(image => image.id === id);
-      if (imageToRemove) {
-        URL.revokeObjectURL(imageToRemove.preview);
-      }
-      return filtered;
-    });
+    setUploadedImages(prev => prev.filter(image => image.id !== id));
   };
 
   const handleRemoveSavedImage = (id: number) => {

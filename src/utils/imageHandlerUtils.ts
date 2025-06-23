@@ -3,6 +3,16 @@
  * Utility functions for handling image uploads and management
  */
 
+// Convert File to base64 string
+export const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+  });
+};
+
 // Load saved images from localStorage
 export const loadSavedImagesFromStorage = () => {
   const savedImagesString = localStorage.getItem('uploadedBulkImages');
@@ -53,15 +63,26 @@ export const downloadImage = (url: string, filename: string) => {
 };
 
 // Process bulk upload and save to localStorage
-export const processBulkUpload = (
+export const processBulkUpload = async (
   uploadedImages: UploadedImage[], 
   savedImages: UploadedImage[],
   setSavedImages: React.Dispatch<React.SetStateAction<UploadedImage[]>>,
   setUploadedImages: React.Dispatch<React.SetStateAction<UploadedImage[]>>,
   setIsUploading: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
-  return new Promise<void>((resolve) => {
-    setTimeout(() => {
+  return new Promise<void>(async (resolve) => {
+    try {
+      // Convert uploaded images to base64 for better persistence
+      const processedImages = await Promise.all(
+        uploadedImages.map(async (img) => {
+          const base64Url = await fileToBase64(img.file);
+          return {
+            ...img,
+            preview: base64Url // Use base64 instead of object URL
+          };
+        })
+      );
+
       // Get existing gallery images from localStorage
       const savedImagesString = localStorage.getItem('galleryImages');
       let galleryImages = [];
@@ -79,11 +100,10 @@ export const processBulkUpload = (
         ? Math.max(...galleryImages.map((img: any) => img.id)) + 1 
         : 1;
       
-      // Create object URLs for the uploaded images
-      // In a real app, you would upload these to a server and use the returned URLs
-      const newGalleryImages = uploadedImages.map((img, index) => ({
+      // Create gallery images with base64 URLs
+      const newGalleryImages = processedImages.map((img, index) => ({
         id: nextId + index,
-        url: img.preview,
+        url: img.preview, // Now using base64 URL
         alt: `Uploaded image ${nextId + index}`,
         order: galleryImages.length + index + 1
       }));
@@ -92,15 +112,18 @@ export const processBulkUpload = (
       const updatedGallery = [...galleryImages, ...newGalleryImages];
       localStorage.setItem('galleryImages', JSON.stringify(updatedGallery));
       
-      // Save to our separate bulk upload storage
-      const updatedSavedImages = [...savedImages, ...uploadedImages];
+      // Save to our separate bulk upload storage with base64 URLs
+      const updatedSavedImages = [...savedImages, ...processedImages];
       setSavedImages(updatedSavedImages);
       localStorage.setItem('uploadedBulkImages', JSON.stringify(updatedSavedImages));
       
       setIsUploading(false);
       setUploadedImages([]);
       resolve();
-    }, 1500);
+    } catch (error) {
+      console.error("Error processing images:", error);
+      setIsUploading(false);
+    }
   });
 };
 
