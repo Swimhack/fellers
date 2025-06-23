@@ -6,13 +6,12 @@ import {
   loadSavedImagesFromStorage, 
   removeFromGallery,
   downloadImage,
-  processBulkUpload,
-  fileToBase64
+  processBulkUpload
 } from '@/utils/imageHandlerUtils';
 import { filterGalleryImages, isValidGalleryImage } from '@/utils/galleryUtils';
 
 export const useBulkImageUpload = () => {
-  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [savedImages, setSavedImages] = useState<UploadedImage[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -40,41 +39,22 @@ export const useBulkImageUpload = () => {
     }
   };
 
-  const handleFileChange = async (newFiles: File[]) => {
-    console.log('Processing', newFiles.length, 'new files');
-    const newImages: UploadedImage[] = [];
+  const handleFileChange = (newFiles: File[]) => {
+    console.log('Selected', newFiles.length, 'new files');
     
-    for (const file of newFiles) {
-      // Only process image files
-      if (!file.type.startsWith('image/')) {
-        console.log('Skipping non-image file:', file.name);
-        continue;
-      }
-      
-      try {
-        // Convert to base64 immediately for preview
-        const base64Preview = await fileToBase64(file);
-        const newImage: UploadedImage = {
-          id: Date.now() + Math.random(),
-          file,
-          preview: base64Preview,
-          name: file.name,
-          uploadDate: new Date().toISOString()
-        };
-        newImages.push(newImage);
-        console.log('Processed file:', file.name);
-      } catch (error) {
-        console.error("Error processing file:", file.name, error);
-        toast.error(`Error processing ${file.name}`);
-      }
+    // Filter only image files
+    const imageFiles = newFiles.filter(file => file.type.startsWith('image/'));
+    console.log('Valid image files:', imageFiles.length);
+    
+    if (imageFiles.length !== newFiles.length) {
+      toast.error(`${newFiles.length - imageFiles.length} non-image files were ignored`);
     }
-
-    console.log('Adding', newImages.length, 'new images to upload queue');
-    setUploadedImages(prev => [...prev, ...newImages]);
+    
+    setSelectedFiles(prev => [...prev, ...imageFiles]);
   };
 
-  const handleRemoveImage = (id: number) => {
-    setUploadedImages(prev => prev.filter(image => image.id !== id));
+  const handleRemoveFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleRemoveSavedImage = (id: number) => {
@@ -94,45 +74,56 @@ export const useBulkImageUpload = () => {
   };
 
   const handleBulkUpload = async () => {
-    if (uploadedImages.length === 0) {
-      toast.error("No images to upload", {
+    if (selectedFiles.length === 0) {
+      toast.error("No images selected", {
         description: "Please select at least one image to upload.",
       });
       return;
     }
 
-    console.log('Starting bulk upload of', uploadedImages.length, 'images');
+    console.log('Starting bulk upload of', selectedFiles.length, 'files');
     setIsUploading(true);
 
     try {
-      const processedCount = await processBulkUpload(
-        uploadedImages,
-        savedImages,
-        setSavedImages,
-        setUploadedImages,
-        setIsUploading
-      );
+      const result = await processBulkUpload(selectedFiles);
       
-      toast.success(`Successfully uploaded ${processedCount} images to gallery`);
+      if (result.successful > 0) {
+        toast.success(`Successfully uploaded ${result.successful} images to gallery`);
+        setSelectedFiles([]); // Clear selected files
+        
+        // Reload saved images
+        setTimeout(() => {
+          loadSavedImages();
+        }, 100);
+      }
       
-      // Reload saved images to reflect changes
-      setTimeout(() => {
-        loadSavedImages();
-      }, 100);
+      if (result.failed > 0) {
+        toast.error(`${result.failed} images failed to upload`);
+      }
       
     } catch (error) {
       console.error("Error during bulk upload:", error);
       toast.error("Error uploading images. Please try again.");
+    } finally {
       setIsUploading(false);
     }
   };
+
+  // Convert files to preview objects for display
+  const uploadedImages = selectedFiles.map((file, index) => ({
+    id: Date.now() + index,
+    file,
+    preview: URL.createObjectURL(file),
+    name: file.name,
+    uploadDate: new Date().toISOString()
+  }));
 
   return {
     uploadedImages,
     savedImages,
     isUploading,
     handleFileChange,
-    handleRemoveImage,
+    handleRemoveImage: handleRemoveFile,
     handleRemoveSavedImage,
     handleDownloadImage,
     handleBulkUpload

@@ -65,103 +65,96 @@ export const downloadImage = (url: string, filename: string) => {
   document.body.removeChild(link);
 };
 
-// Process bulk upload and save to localStorage
-export const processBulkUpload = async (
-  uploadedImages: UploadedImage[], 
-  savedImages: UploadedImage[],
-  setSavedImages: React.Dispatch<React.SetStateAction<UploadedImage[]>>,
-  setUploadedImages: React.Dispatch<React.SetStateAction<UploadedImage[]>>,
-  setIsUploading: React.Dispatch<React.SetStateAction<boolean>>
-) => {
-  console.log('Starting bulk upload process with', uploadedImages.length, 'images');
+// Simplified bulk upload process
+export const processBulkUpload = async (files: File[]) => {
+  console.log('Starting simplified bulk upload with', files.length, 'files');
   
-  try {
-    // Process images and ensure they have base64 data
-    const processedImages: UploadedImage[] = [];
+  const processedImages = [];
+  const failedImages = [];
+  
+  // Process each file individually
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    console.log(`Processing file ${i + 1}/${files.length}:`, file.name);
     
-    for (const img of uploadedImages) {
-      try {
-        let base64Url = img.preview;
-        
-        // If preview is not base64, convert the file
-        if (!base64Url.startsWith('data:')) {
-          console.log('Converting file to base64:', img.name);
-          base64Url = await fileToBase64(img.file);
-        }
-        
-        const processedImage: UploadedImage = {
-          ...img,
-          preview: base64Url,
-          id: Date.now() + Math.random() // Ensure unique ID
-        };
-        
-        processedImages.push(processedImage);
-        console.log('Successfully processed:', img.name);
-      } catch (error) {
-        console.error('Error processing image:', img.name, error);
-        // Continue with other images even if one fails
-      }
+    try {
+      // Convert to base64
+      const base64Data = await fileToBase64(file);
+      
+      const imageData = {
+        id: Date.now() + Math.random(),
+        file: file,
+        preview: base64Data,
+        name: file.name,
+        uploadDate: new Date().toISOString()
+      };
+      
+      processedImages.push(imageData);
+      console.log('Successfully processed:', file.name);
+      
+    } catch (error) {
+      console.error('Failed to process:', file.name, error);
+      failedImages.push(file.name);
     }
-
-    console.log('Successfully processed', processedImages.length, 'out of', uploadedImages.length, 'images');
-
-    if (processedImages.length === 0) {
-      throw new Error('No images were successfully processed');
-    }
-
-    // Get existing gallery images from localStorage
-    let galleryImages = [];
-    const savedImagesString = localStorage.getItem('galleryImages');
-    
-    if (savedImagesString) {
-      try {
-        galleryImages = JSON.parse(savedImagesString);
-      } catch (error) {
-        console.error("Error parsing gallery images:", error);
-        galleryImages = [];
-      }
-    }
-
-    // Get the next ID for gallery
-    const nextId = galleryImages.length > 0 
-      ? Math.max(...galleryImages.map((img: any) => img.id || 0)) + 1 
-      : 1;
-    
-    // Create gallery images with base64 URLs
-    const newGalleryImages = processedImages.map((img, index) => ({
-      id: nextId + index,
-      url: img.preview,
-      alt: img.name ? `${img.name}` : `Fellers Resources heavy towing equipment ${nextId + index}`,
-      order: galleryImages.length + index + 1
-    }));
-    
-    console.log('Creating', newGalleryImages.length, 'gallery images');
-    
-    // Add new images to gallery
-    const updatedGallery = [...galleryImages, ...newGalleryImages];
-    localStorage.setItem('galleryImages', JSON.stringify(updatedGallery));
-    
-    // Save to our separate bulk upload storage
-    const updatedSavedImages = [...savedImages, ...processedImages];
-    setSavedImages(updatedSavedImages);
-    localStorage.setItem('uploadedBulkImages', JSON.stringify(updatedSavedImages));
-    
-    console.log('Bulk upload completed successfully');
-    
-    // Clear the uploaded images and stop loading
-    setUploadedImages([]);
-    setIsUploading(false);
-    
-    // Trigger gallery update event
-    window.dispatchEvent(new CustomEvent('galleryImagesUpdated'));
-    
-    return processedImages.length;
-    
-  } catch (error) {
-    console.error("Error processing bulk upload:", error);
-    setIsUploading(false);
-    throw error;
   }
+  
+  if (processedImages.length === 0) {
+    throw new Error('No images were successfully processed');
+  }
+  
+  // Get existing gallery images
+  let galleryImages = [];
+  try {
+    const existingGallery = localStorage.getItem('galleryImages');
+    if (existingGallery) {
+      galleryImages = JSON.parse(existingGallery);
+    }
+  } catch (error) {
+    console.error('Error loading existing gallery:', error);
+    galleryImages = [];
+  }
+  
+  // Create new gallery entries
+  const nextId = galleryImages.length > 0 
+    ? Math.max(...galleryImages.map((img: any) => img.id || 0)) + 1 
+    : 1;
+  
+  const newGalleryImages = processedImages.map((img, index) => ({
+    id: nextId + index,
+    url: img.preview,
+    alt: `${img.name}` || `Fellers Resources equipment ${nextId + index}`,
+    order: galleryImages.length + index + 1
+  }));
+  
+  // Save to gallery
+  const updatedGallery = [...galleryImages, ...newGalleryImages];
+  localStorage.setItem('galleryImages', JSON.stringify(updatedGallery));
+  
+  // Save to bulk upload storage
+  let savedImages = [];
+  try {
+    const existingSaved = localStorage.getItem('uploadedBulkImages');
+    if (existingSaved) {
+      savedImages = JSON.parse(existingSaved);
+    }
+  } catch (error) {
+    console.error('Error loading saved images:', error);
+    savedImages = [];
+  }
+  
+  const updatedSaved = [...savedImages, ...processedImages];
+  localStorage.setItem('uploadedBulkImages', JSON.stringify(updatedSaved));
+  
+  // Trigger update event
+  window.dispatchEvent(new CustomEvent('galleryImagesUpdated'));
+  
+  console.log(`Upload complete: ${processedImages.length} successful, ${failedImages.length} failed`);
+  
+  return {
+    successful: processedImages.length,
+    failed: failedImages.length,
+    failedFiles: failedImages
+  };
 };
 
 // Types
