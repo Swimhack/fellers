@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,8 +37,16 @@ interface GalleryImage {
   order: number;
 }
 
+interface ImageLoadState {
+  [key: number]: {
+    loaded: boolean;
+    error: boolean;
+  };
+}
+
 const AdminGallery = () => {
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  const [imageLoadStates, setImageLoadStates] = useState<ImageLoadState>({});
   const [newImageUrl, setNewImageUrl] = useState("");
   const [newImageAlt, setNewImageAlt] = useState("");
   const [imageToDelete, setImageToDelete] = useState<number | null>(null);
@@ -51,11 +60,44 @@ const AdminGallery = () => {
     console.log('Gallery update event triggered');
   };
 
+  // Preload images and track their loading states
+  const preloadImages = (images: GalleryImage[]) => {
+    const newLoadStates: ImageLoadState = {};
+    
+    images.forEach((image) => {
+      newLoadStates[image.id] = { loaded: false, error: false };
+      
+      const img = new Image();
+      img.onload = () => {
+        setImageLoadStates(prev => ({
+          ...prev,
+          [image.id]: { loaded: true, error: false }
+        }));
+      };
+      img.onerror = () => {
+        setImageLoadStates(prev => ({
+          ...prev,
+          [image.id]: { loaded: true, error: true }
+        }));
+      };
+      img.src = image.url;
+    });
+    
+    setImageLoadStates(newLoadStates);
+  };
+
   useEffect(() => {
     // Check if we have saved images in localStorage
     const savedImages = localStorage.getItem('galleryImages');
     if (savedImages) {
-      setGalleryImages(JSON.parse(savedImages));
+      try {
+        const parsedImages = JSON.parse(savedImages);
+        setGalleryImages(parsedImages);
+        preloadImages(parsedImages);
+      } catch (error) {
+        console.error('Error parsing gallery images:', error);
+        setGalleryImages([]);
+      }
     } else {
       // Start with empty gallery - admin needs to upload images
       setGalleryImages([]);
@@ -64,15 +106,37 @@ const AdminGallery = () => {
 
   // Save changes to localStorage whenever gallery images change
   useEffect(() => {
-    localStorage.setItem('galleryImages', JSON.stringify(galleryImages));
-    triggerGalleryUpdate();
+    if (galleryImages.length > 0) {
+      localStorage.setItem('galleryImages', JSON.stringify(galleryImages));
+      triggerGalleryUpdate();
+    }
   }, [galleryImages]);
 
-  const handleAddImage = () => {
+  const validateImageUrl = async (url: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = url;
+    });
+  };
+
+  const handleAddImage = async () => {
     if (!newImageUrl) {
       toast({
         title: "Error",
         description: "Please enter an image URL",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate the image URL before adding
+    const isValidImage = await validateImageUrl(newImageUrl);
+    if (!isValidImage) {
+      toast({
+        title: "Error",
+        description: "Invalid image URL or image cannot be loaded",
         variant: "destructive",
       });
       return;
@@ -85,7 +149,9 @@ const AdminGallery = () => {
       order: galleryImages.length + 1
     };
 
-    setGalleryImages([...galleryImages, newImage]);
+    const updatedImages = [...galleryImages, newImage];
+    setGalleryImages(updatedImages);
+    preloadImages([newImage]); // Preload the new image
     setNewImageUrl("");
     setNewImageAlt("");
 
@@ -110,6 +176,14 @@ const AdminGallery = () => {
       }));
       
       setGalleryImages(reorderedImages);
+      
+      // Remove from load states
+      setImageLoadStates(prev => {
+        const newStates = { ...prev };
+        delete newStates[imageToDelete];
+        return newStates;
+      });
+      
       setImageToDelete(null);
 
       toast({
@@ -172,6 +246,38 @@ const AdminGallery = () => {
     setEnlargedImage(image);
   };
 
+  const renderThumbnail = (image: GalleryImage) => {
+    const loadState = imageLoadStates[image.id];
+    
+    if (!loadState || (!loadState.loaded && !loadState.error)) {
+      return (
+        <Skeleton className="w-16 h-16 rounded-md" />
+      );
+    }
+    
+    if (loadState.error) {
+      return (
+        <div className="w-16 h-16 bg-gray-200 rounded-md flex items-center justify-center text-xs text-gray-500">
+          Error
+        </div>
+      );
+    }
+    
+    return (
+      <div 
+        className="w-16 h-16 relative cursor-pointer hover:opacity-80 transition-opacity"
+        onClick={() => handleImageClick(image)}
+      >
+        <img 
+          src={image.url} 
+          alt={image.alt} 
+          className="object-cover w-full h-full rounded-md"
+          loading="eager"
+        />
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-8 p-6">
       <Card>
@@ -230,19 +336,7 @@ const AdminGallery = () => {
                 {galleryImages.map((image, index) => (
                   <TableRow key={image.id}>
                     <TableCell>
-                      <div 
-                        className="w-16 h-16 relative cursor-pointer hover:opacity-80 transition-opacity"
-                        onClick={() => handleImageClick(image)}
-                      >
-                        <img 
-                          src={image.url} 
-                          alt={image.alt} 
-                          className="object-cover w-full h-full rounded-md"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = "https://via.placeholder.com/150?text=Error";
-                          }}
-                        />
-                      </div>
+                      {renderThumbnail(image)}
                     </TableCell>
                     <TableCell className="max-w-[200px] truncate">
                       {image.url}
@@ -301,9 +395,7 @@ const AdminGallery = () => {
                 src={enlargedImage.url} 
                 alt={enlargedImage.alt}
                 className="max-w-full max-h-[70vh] object-contain rounded-lg"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = "https://via.placeholder.com/400?text=Error+Loading+Image";
-                }}
+                loading="eager"
               />
             )}
           </div>
