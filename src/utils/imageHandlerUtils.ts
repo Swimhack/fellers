@@ -9,7 +9,10 @@ export const fileToBase64 = (file: File): Promise<string> => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = () => resolve(reader.result as string);
-    reader.onerror = error => reject(error);
+    reader.onerror = error => {
+      console.error('Error converting file to base64:', error);
+      reject(error);
+    };
   });
 };
 
@@ -73,41 +76,55 @@ export const processBulkUpload = async (
   console.log('Starting bulk upload process with', uploadedImages.length, 'images');
   
   try {
-    // Convert uploaded images to base64 for better persistence if they aren't already
-    const processedImages = await Promise.all(
-      uploadedImages.map(async (img) => {
+    // Process images and ensure they have base64 data
+    const processedImages: UploadedImage[] = [];
+    
+    for (const img of uploadedImages) {
+      try {
         let base64Url = img.preview;
         
         // If preview is not base64, convert the file
         if (!base64Url.startsWith('data:')) {
+          console.log('Converting file to base64:', img.name);
           base64Url = await fileToBase64(img.file);
         }
         
-        return {
+        const processedImage: UploadedImage = {
           ...img,
           preview: base64Url,
           id: Date.now() + Math.random() // Ensure unique ID
         };
-      })
-    );
+        
+        processedImages.push(processedImage);
+        console.log('Successfully processed:', img.name);
+      } catch (error) {
+        console.error('Error processing image:', img.name, error);
+        // Continue with other images even if one fails
+      }
+    }
 
-    console.log('Processed images:', processedImages.length);
+    console.log('Successfully processed', processedImages.length, 'out of', uploadedImages.length, 'images');
+
+    if (processedImages.length === 0) {
+      throw new Error('No images were successfully processed');
+    }
 
     // Get existing gallery images from localStorage
-    const savedImagesString = localStorage.getItem('galleryImages');
     let galleryImages = [];
+    const savedImagesString = localStorage.getItem('galleryImages');
     
     if (savedImagesString) {
       try {
         galleryImages = JSON.parse(savedImagesString);
       } catch (error) {
         console.error("Error parsing gallery images:", error);
+        galleryImages = [];
       }
     }
 
     // Get the next ID for gallery
     const nextId = galleryImages.length > 0 
-      ? Math.max(...galleryImages.map((img: any) => img.id)) + 1 
+      ? Math.max(...galleryImages.map((img: any) => img.id || 0)) + 1 
       : 1;
     
     // Create gallery images with base64 URLs
@@ -118,7 +135,7 @@ export const processBulkUpload = async (
       order: galleryImages.length + index + 1
     }));
     
-    console.log('Creating gallery images:', newGalleryImages.length);
+    console.log('Creating', newGalleryImages.length, 'gallery images');
     
     // Add new images to gallery
     const updatedGallery = [...galleryImages, ...newGalleryImages];
@@ -137,6 +154,8 @@ export const processBulkUpload = async (
     
     // Trigger gallery update event
     window.dispatchEvent(new CustomEvent('galleryImagesUpdated'));
+    
+    return processedImages.length;
     
   } catch (error) {
     console.error("Error processing bulk upload:", error);

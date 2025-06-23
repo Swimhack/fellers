@@ -105,14 +105,21 @@ export const useBulkImageUpload = () => {
     setIsUploading(true);
 
     try {
-      await processBulkUpload(
+      const processedCount = await processBulkUpload(
         uploadedImages,
         savedImages,
         setSavedImages,
         setUploadedImages,
         setIsUploading
       );
-      toast.success(`Successfully uploaded ${uploadedImages.length} images to gallery`);
+      
+      toast.success(`Successfully uploaded ${processedCount} images to gallery`);
+      
+      // Reload saved images to reflect changes
+      setTimeout(() => {
+        loadSavedImages();
+      }, 100);
+      
     } catch (error) {
       console.error("Error during bulk upload:", error);
       toast.error("Error uploading images. Please try again.");
