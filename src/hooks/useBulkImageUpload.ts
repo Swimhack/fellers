@@ -36,33 +36,40 @@ export const useBulkImageUpload = () => {
         localStorage.setItem('uploadedBulkImages', JSON.stringify(filteredImages));
       }
     } else {
-      toast.error("Error loading saved images");
+      setSavedImages([]);
     }
   };
 
   const handleFileChange = async (newFiles: File[]) => {
+    console.log('Processing', newFiles.length, 'new files');
     const newImages: UploadedImage[] = [];
     
     for (const file of newFiles) {
       // Only process image files
-      if (!file.type.startsWith('image/')) continue;
+      if (!file.type.startsWith('image/')) {
+        console.log('Skipping non-image file:', file.name);
+        continue;
+      }
       
       try {
-        // Convert to base64 immediately for better reliability
+        // Convert to base64 immediately for preview
         const base64Preview = await fileToBase64(file);
-        newImages.push({
+        const newImage: UploadedImage = {
           id: Date.now() + Math.random(),
           file,
           preview: base64Preview,
           name: file.name,
           uploadDate: new Date().toISOString()
-        });
+        };
+        newImages.push(newImage);
+        console.log('Processed file:', file.name);
       } catch (error) {
         console.error("Error processing file:", file.name, error);
         toast.error(`Error processing ${file.name}`);
       }
     }
 
+    console.log('Adding', newImages.length, 'new images to upload queue');
     setUploadedImages(prev => [...prev, ...newImages]);
   };
 
@@ -94,6 +101,7 @@ export const useBulkImageUpload = () => {
       return;
     }
 
+    console.log('Starting bulk upload of', uploadedImages.length, 'images');
     setIsUploading(true);
 
     try {
@@ -104,10 +112,10 @@ export const useBulkImageUpload = () => {
         setUploadedImages,
         setIsUploading
       );
-      toast.success(`Successfully processed ${uploadedImages.length} images`);
+      toast.success(`Successfully uploaded ${uploadedImages.length} images to gallery`);
     } catch (error) {
-      console.error("Error processing upload:", error);
-      toast.error("Error uploading images");
+      console.error("Error during bulk upload:", error);
+      toast.error("Error uploading images. Please try again.");
       setIsUploading(false);
     }
   };
