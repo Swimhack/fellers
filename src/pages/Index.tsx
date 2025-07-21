@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
@@ -13,9 +12,13 @@ import ContactForm from '@/components/ContactForm';
 import MobileBottomBar from '@/components/MobileBottomBar';
 import Footer from '@/components/Footer';
 import SEOSchema from '@/components/SEOSchema';
+import { initializeGalleryWithUploadedImage } from '@/utils/initializeGallery';
 
 const Index = () => {
   useEffect(() => {
+    // Initialize gallery with uploaded image if empty
+    initializeGalleryWithUploadedImage();
+    
     // Preload critical images
     const preloadImages = () => {
       const heroImage = new Image();
