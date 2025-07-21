@@ -8,7 +8,7 @@ import {
   downloadImage,
   processBulkUpload
 } from '@/utils/imageHandlerUtils';
-import { filterGalleryImages, isValidGalleryImage } from '@/utils/galleryUtils';
+import { isValidGalleryImage } from '@/utils/galleryUtils';
 
 export const useBulkImageUpload = () => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -20,11 +20,11 @@ export const useBulkImageUpload = () => {
     loadSavedImages();
   }, []);
 
-  // Load saved images from localStorage and filter to only show /lovable-uploads/ images
+  // Load saved images from localStorage and filter to only show valid images
   const loadSavedImages = () => {
     const images = loadSavedImagesFromStorage();
     if (images) {
-      // Filter to only show images from /lovable-uploads/ directory
+      // Filter to only show valid gallery images
       const filteredImages = images.filter((image: UploadedImage) => 
         isValidGalleryImage(image.preview)
       );
@@ -103,16 +103,15 @@ export const useBulkImageUpload = () => {
       
     } catch (error) {
       console.error("Error during bulk upload:", error);
-      toast.error("Error uploading images. Please try again.");
+      toast.error(error instanceof Error ? error.message : "Error uploading images. Please try again.");
     } finally {
       setIsUploading(false);
     }
   };
 
-  // Convert files to preview objects for display
+  // Convert files to preview objects for display (now without File objects in storage)
   const uploadedImages = selectedFiles.map((file, index) => ({
     id: Date.now() + index,
-    file,
     preview: URL.createObjectURL(file),
     name: file.name,
     uploadDate: new Date().toISOString()

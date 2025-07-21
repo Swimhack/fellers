@@ -14,6 +14,7 @@ export const validateImageUrl = async (url: string): Promise<boolean> => {
 };
 
 export const isValidGalleryImage = (url: string): boolean => {
+  // Accept /lovable-uploads/ images and Base64 data URLs
   return url.includes('/lovable-uploads/') || url.startsWith('data:image/');
 };
 
