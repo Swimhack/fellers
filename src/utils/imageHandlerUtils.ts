@@ -3,68 +3,56 @@
  * Utility functions for handling image uploads and management
  */
 
-// Convert File to base64 string
-export const fileToBase64 = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = error => {
-      console.error('Error converting file to base64:', error);
-      reject(error);
-    };
-  });
-};
+import { compressImage, getStorageStats } from './imageCompressionUtils';
+import { safeLocalStorageSet, safeLocalStorageGet, StorageError } from './storageUtils';
+import { triggerGalleryUpdate } from './galleryUtils';
+
+export interface UploadedImage {
+  id: number;
+  preview: string;
+  name: string;
+  uploadDate: string;
+  compressedSize?: number;
+  originalSize?: number;
+  compressionRatio?: number;
+}
+
+export interface BulkUploadResult {
+  successful: number;
+  failed: number;
+  failedFiles: string[];
+  compressionStats?: {
+    totalOriginalSize: number;
+    totalCompressedSize: number;
+    averageCompressionRatio: number;
+  };
+}
 
 // Load saved images from localStorage
-export const loadSavedImagesFromStorage = () => {
-  try {
-    const savedImagesString = localStorage.getItem('uploadedBulkImages');
-    if (savedImagesString) {
-      return JSON.parse(savedImagesString);
-    }
-    return [];
-  } catch (error) {
-    console.error("Error parsing saved images:", error);
-    return [];
-  }
-};
-
-// Save images to localStorage with error handling
-export const saveImagesToStorage = (images: any[]) => {
-  try {
-    localStorage.setItem('uploadedBulkImages', JSON.stringify(images));
-  } catch (error) {
-    console.error("Error saving images to storage:", error);
-    throw new Error("Failed to save images - storage may be full");
-  }
+export const loadSavedImagesFromStorage = (): UploadedImage[] => {
+  return safeLocalStorageGet('uploadedBulkImages', []);
 };
 
 // Remove image from gallery images in localStorage
-export const removeFromGallery = (id: number) => {
+export const removeFromGallery = (id: number): void => {
   try {
-    const galleryImagesString = localStorage.getItem('galleryImages');
-    if (galleryImagesString) {
-      const galleryImages = JSON.parse(galleryImagesString);
-      const updatedGallery = galleryImages.filter((img: any) => img.id !== id);
-      localStorage.setItem('galleryImages', JSON.stringify(updatedGallery));
-      
-      // Trigger update event
-      window.dispatchEvent(new CustomEvent('galleryImagesUpdated'));
-    }
+    const galleryImages = safeLocalStorageGet('galleryImages', []);
+    const updatedGallery = galleryImages.filter((img: any) => img.id !== id);
+    safeLocalStorageSet('galleryImages', updatedGallery);
+    triggerGalleryUpdate();
   } catch (error) {
     console.error("Error updating gallery images:", error);
   }
 };
 
 // Format date from ISO string to local date and time
-export const formatDate = (dateString: string) => {
+export const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
   return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
 };
 
 // Create downloadable link for image
-export const downloadImage = (url: string, filename: string) => {
+export const downloadImage = (url: string, filename: string): void => {
   const link = document.createElement('a');
   link.href = url;
   link.download = filename;
@@ -73,110 +61,151 @@ export const downloadImage = (url: string, filename: string) => {
   document.body.removeChild(link);
 };
 
-// Generate unique ID
-const generateUniqueId = () => {
-  return Date.now() + Math.floor(Math.random() * 10000);
+// Generate unique ID with better collision avoidance
+const generateUniqueId = (): number => {
+  return Date.now() + Math.floor(Math.random() * 100000);
 };
 
-// Simplified bulk upload process
-export const processBulkUpload = async (files: File[]) => {
-  console.log('Starting bulk upload process with', files.length, 'files');
+// Process files in batches to avoid memory issues
+const processBatch = async (files: File[], batchSize: number = 5): Promise<UploadedImage[]> => {
+  const processedImages: UploadedImage[] = [];
   
-  const processedImages = [];
-  const failedImages = [];
-  
-  // Process each file individually
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    console.log(`Processing file ${i + 1}/${files.length}:`, file.name);
+  for (let i = 0; i < files.length; i += batchSize) {
+    const batch = files.slice(i, i + batchSize);
+    const batchPromises = batch.map(async (file, index) => {
+      try {
+        console.log(`Processing file ${i + index + 1}/${files.length}:`, file.name);
+        
+        // Compress the image
+        const compressionResult = await compressImage(file, {
+          maxWidth: 1920,
+          maxHeight: 1080,
+          quality: 0.8,
+          format: 'image/jpeg'
+        });
+        
+        const imageData: UploadedImage = {
+          id: generateUniqueId(),
+          preview: compressionResult.compressedDataUrl,
+          name: file.name,
+          uploadDate: new Date().toISOString(),
+          originalSize: compressionResult.originalSize,
+          compressedSize: compressionResult.compressedSize,
+          compressionRatio: compressionResult.compressionRatio
+        };
+        
+        console.log(`Compressed ${file.name}: ${compressionResult.compressionRatio}% reduction`);
+        return imageData;
+      } catch (error) {
+        console.error(`Failed to process ${file.name}:`, error);
+        throw error;
+      }
+    });
     
-    try {
-      // Convert to base64
-      const base64Data = await fileToBase64(file);
-      
-      // Create image data without File object (File objects cannot be serialized)
-      const imageData = {
-        id: generateUniqueId(),
-        preview: base64Data,
-        name: file.name,
-        uploadDate: new Date().toISOString()
-      };
-      
-      processedImages.push(imageData);
-      console.log('Successfully processed:', file.name);
-      
-    } catch (error) {
-      console.error('Failed to process:', file.name, error);
-      failedImages.push(file.name);
-    }
+    const batchResults = await Promise.allSettled(batchPromises);
+    const successfulResults = batchResults
+      .filter((result): result is PromiseFulfilledResult<UploadedImage> => result.status === 'fulfilled')
+      .map(result => result.value);
+    
+    processedImages.push(...successfulResults);
   }
   
-  if (processedImages.length === 0) {
-    throw new Error('No images were successfully processed');
+  return processedImages;
+};
+
+// Simplified bulk upload process with compression and better error handling
+export const processBulkUpload = async (files: File[]): Promise<BulkUploadResult> => {
+  console.log('Starting bulk upload process with', files.length, 'files');
+  
+  // Check storage before processing
+  const storageStats = getStorageStats();
+  console.log('Current storage usage:', storageStats);
+  
+  if (storageStats.usagePercentage > 80) {
+    console.warn('Storage usage is high:', storageStats.usagePercentage + '%');
   }
   
   try {
-    // Get existing gallery images
-    let galleryImages = [];
-    const existingGallery = localStorage.getItem('galleryImages');
-    if (existingGallery) {
-      galleryImages = JSON.parse(existingGallery);
+    // Process files in batches
+    const processedImages = await processBatch(files);
+    
+    if (processedImages.length === 0) {
+      throw new Error('No images were successfully processed');
     }
     
-    console.log('Existing gallery images:', galleryImages);
+    // Calculate compression stats
+    const totalOriginalSize = processedImages.reduce((sum, img) => sum + (img.originalSize || 0), 0);
+    const totalCompressedSize = processedImages.reduce((sum, img) => sum + (img.compressedSize || 0), 0);
+    const averageCompressionRatio = Math.round(
+      processedImages.reduce((sum, img) => sum + (img.compressionRatio || 0), 0) / processedImages.length
+    );
     
-    // Create new gallery entries with proper structure
+    // Get existing gallery images
+    const galleryImages = safeLocalStorageGet('galleryImages', []);
+    
+    // Create new gallery entries
     const nextId = galleryImages.length > 0 
       ? Math.max(...galleryImages.map((img: any) => img.id || 0)) + 1 
       : 1;
     
     const newGalleryImages = processedImages.map((img, index) => ({
       id: nextId + index,
-      url: img.preview, // Use the base64 data URL
+      url: img.preview,
       alt: img.name ? `${img.name.replace(/\.[^/.]+$/, '')}` : `Fellers Resources equipment ${nextId + index}`,
       order: galleryImages.length + index + 1
     }));
     
-    console.log('New gallery images to add:', newGalleryImages);
-    
-    // Save to gallery
-    const updatedGallery = [...galleryImages, ...newGalleryImages];
-    localStorage.setItem('galleryImages', JSON.stringify(updatedGallery));
-    console.log('Updated gallery saved to localStorage:', updatedGallery);
-    
-    // Save to bulk upload storage
-    let savedImages = [];
-    const existingSaved = localStorage.getItem('uploadedBulkImages');
-    if (existingSaved) {
-      savedImages = JSON.parse(existingSaved);
+    // Save to gallery with error handling
+    try {
+      const updatedGallery = [...galleryImages, ...newGalleryImages];
+      safeLocalStorageSet('galleryImages', updatedGallery);
+      console.log('Gallery updated successfully');
+    } catch (error) {
+      if (error instanceof StorageError && error.type === 'QUOTA_EXCEEDED') {
+        throw new Error('Storage quota exceeded. Please clear some existing images and try again with fewer images.');
+      }
+      throw error;
     }
     
-    const updatedSaved = [...savedImages, ...processedImages];
-    localStorage.setItem('uploadedBulkImages', JSON.stringify(updatedSaved));
-    console.log('Updated bulk upload images saved to localStorage');
+    // Save to bulk upload storage
+    try {
+      const savedImages = safeLocalStorageGet('uploadedBulkImages', []);
+      const updatedSaved = [...savedImages, ...processedImages];
+      safeLocalStorageSet('uploadedBulkImages', updatedSaved);
+      console.log('Bulk upload images saved successfully');
+    } catch (error) {
+      console.warn('Failed to save to bulk upload storage:', error);
+      // Continue anyway since gallery was updated
+    }
     
     // Trigger update event
-    window.dispatchEvent(new CustomEvent('galleryImagesUpdated'));
-    console.log('Gallery update event triggered');
+    triggerGalleryUpdate();
     
-  } catch (storageError) {
-    console.error('Storage error:', storageError);
-    throw new Error('Failed to save images to storage - storage may be full');
+    const result: BulkUploadResult = {
+      successful: processedImages.length,
+      failed: files.length - processedImages.length,
+      failedFiles: files.slice(processedImages.length).map(f => f.name),
+      compressionStats: {
+        totalOriginalSize,
+        totalCompressedSize,
+        averageCompressionRatio
+      }
+    };
+    
+    console.log('Upload complete:', result);
+    return result;
+    
+  } catch (error) {
+    console.error('Bulk upload failed:', error);
+    
+    if (error instanceof StorageError) {
+      throw error;
+    }
+    
+    if (error instanceof Error) {
+      throw new Error(`Upload failed: ${error.message}`);
+    }
+    
+    throw new Error('Upload failed due to an unknown error');
   }
-  
-  console.log(`Upload complete: ${processedImages.length} successful, ${failedImages.length} failed`);
-  
-  return {
-    successful: processedImages.length,
-    failed: failedImages.length,
-    failedFiles: failedImages
-  };
 };
-
-// Types - removed File from UploadedImage since it cannot be serialized
-export interface UploadedImage {
-  id: number;
-  preview: string;
-  name: string;
-  uploadDate: string;
-}
