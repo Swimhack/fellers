@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { Phone } from 'lucide-react';
 import FellersLogo from './FellersLogo';
@@ -6,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { filterGalleryImages } from '@/utils/galleryUtils';
+import { StorageManager } from '@/utils/storageManager';
+import { isValidGalleryImage } from '@/utils/galleryUtils';
 
 interface GalleryImage {
   id: number;
@@ -24,61 +25,33 @@ const Hero = () => {
   
   const loadHeroImages = () => {
     console.log('Loading hero images...');
-    const savedImages = localStorage.getItem('galleryImages');
+    const images = StorageManager.getGalleryImages();
+    console.log('Hero - loaded images:', images.length);
     
-    if (savedImages) {
-      try {
-        const parsedImages: GalleryImage[] = JSON.parse(savedImages);
-        const filteredImages = filterGalleryImages(parsedImages);
-        console.log('Hero - filtered images:', filteredImages);
-        
-        if (filteredImages.length > 0) {
-          const sortedImages = [...filteredImages].sort((a, b) => a.order - b.order);
-          const imageUrls = sortedImages.map(img => img.url);
-          setBackgroundImages(imageUrls);
-          console.log('Hero - using gallery images:', imageUrls);
-        } else {
-          setBackgroundImages([fallbackImage]);
-          console.log('Hero - using fallback image');
-        }
-        
-        // Update localStorage with filtered images if any were removed
-        if (filteredImages.length !== parsedImages.length) {
-          localStorage.setItem('galleryImages', JSON.stringify(filteredImages));
-        }
-      } catch (error) {
-        console.error("Error parsing gallery images for hero:", error);
-        setBackgroundImages([fallbackImage]);
-      }
+    if (images.length > 0) {
+      const validImages = images.filter(img => isValidGalleryImage(img.url));
+      const sortedImages = validImages.sort((a, b) => a.order - b.order);
+      const imageUrls = sortedImages.map(img => img.url);
+      setBackgroundImages(imageUrls);
+      console.log('Hero - using gallery images:', imageUrls.length);
     } else {
-      console.log('Hero - no saved images, using fallback');
       setBackgroundImages([fallbackImage]);
+      console.log('Hero - using fallback image');
     }
   };
 
   useEffect(() => {
-    // Initial load
     loadHeroImages();
 
-    // Listen for storage changes (when admin makes changes)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'galleryImages') {
-        console.log('Hero images updated from admin dashboard');
-        loadHeroImages();
-      }
-    };
-
-    // Listen for custom events (for same-tab updates)
+    // Listen for gallery updates
     const handleGalleryUpdate = () => {
       console.log('Hero images updated via custom event');
       loadHeroImages();
     };
 
-    window.addEventListener('storage', handleStorageChange);
     window.addEventListener('galleryImagesUpdated', handleGalleryUpdate);
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('galleryImagesUpdated', handleGalleryUpdate);
     };
   }, []);

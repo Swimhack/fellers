@@ -9,14 +9,8 @@ import {
 } from "@/components/ui/carousel";
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { filterGalleryImages } from '@/utils/galleryUtils';
-
-interface GalleryImage {
-  id: number;
-  url: string;
-  alt: string;
-  order: number;
-}
+import { StorageManager } from '@/utils/storageManager';
+import { isValidGalleryImage } from '@/utils/galleryUtils';
 
 const Gallery = () => {
   const isMobile = useIsMobile();
@@ -25,65 +19,35 @@ const Gallery = () => {
 
   const loadGalleryImages = () => {
     console.log('Loading gallery images...');
-    const savedImages = localStorage.getItem('galleryImages');
-    console.log('Raw saved images:', savedImages);
+    const images = StorageManager.getGalleryImages();
+    console.log('Loaded images:', images.length);
     
-    if (savedImages) {
-      try {
-        const parsedImages: GalleryImage[] = JSON.parse(savedImages);
-        console.log('Parsed images:', parsedImages);
-        const filteredImages = filterGalleryImages(parsedImages);
-        console.log('Filtered images:', filteredImages);
-        
-        if (filteredImages.length > 0) {
-          const sortedImages = [...filteredImages].sort((a, b) => a.order - b.order);
-          const imageUrls = sortedImages.map(img => img.url);
-          setGalleryImages(imageUrls);
-          console.log('Gallery images set:', imageUrls);
-        } else {
-          setGalleryImages([]);
-          console.log('No valid images found');
-        }
-        
-        // Update localStorage with filtered images if any were removed
-        if (filteredImages.length !== parsedImages.length) {
-          localStorage.setItem('galleryImages', JSON.stringify(filteredImages));
-        }
-      } catch (error) {
-        console.error("Error parsing gallery images from localStorage:", error);
-        setGalleryImages([]);
-      }
+    if (images.length > 0) {
+      const validImages = images.filter(img => isValidGalleryImage(img.url));
+      const sortedImages = validImages.sort((a, b) => a.order - b.order);
+      const imageUrls = sortedImages.map(img => img.url);
+      setGalleryImages(imageUrls);
+      console.log('Gallery images set:', imageUrls.length);
     } else {
-      console.log('No saved images found in localStorage');
       setGalleryImages([]);
+      console.log('No valid images found');
     }
     
     setIsLoading(false);
   };
 
   useEffect(() => {
-    // Initial load
     loadGalleryImages();
 
-    // Listen for storage changes (when admin makes changes)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'galleryImages') {
-        console.log('Gallery images updated from admin dashboard');
-        loadGalleryImages();
-      }
-    };
-
-    // Listen for custom events (for same-tab updates)
+    // Listen for storage changes
     const handleGalleryUpdate = () => {
-      console.log('Gallery images updated via custom event');
+      console.log('Gallery images updated via event');
       loadGalleryImages();
     };
 
-    window.addEventListener('storage', handleStorageChange);
     window.addEventListener('galleryImagesUpdated', handleGalleryUpdate);
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('galleryImagesUpdated', handleGalleryUpdate);
     };
   }, []);
@@ -96,7 +60,6 @@ const Gallery = () => {
     });
   }, [galleryImages]);
 
-  // Always render the gallery section (even when empty) so navigation works
   return (
     <section id="gallery" className="section-padding gradient-bg">
       <div className="container mx-auto">

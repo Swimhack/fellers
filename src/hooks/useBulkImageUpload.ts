@@ -1,16 +1,17 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from "sonner";
-import { 
-  UploadedImage, 
-  loadSavedImagesFromStorage, 
-  removeFromGallery,
-  downloadImage,
-  processBulkUpload
-} from '@/utils/imageHandlerUtils';
-import { getStorageStats } from '@/utils/imageCompressionUtils';
-import { StorageError } from '@/utils/storageUtils';
+import { StorageManager } from '@/utils/storageManager';
+import { ImageProcessor } from '@/utils/imageProcessor';
 import { isValidGalleryImage } from '@/utils/galleryUtils';
+
+export interface UploadedImage {
+  id: number;
+  preview: string;
+  name: string;
+  uploadDate: string;
+  size?: number;
+}
 
 export const useBulkImageUpload = () => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -18,39 +19,27 @@ export const useBulkImageUpload = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  // Load saved images from localStorage when component mounts
   useEffect(() => {
     loadSavedImages();
   }, []);
 
-  // Load saved images from localStorage and filter to only show valid images
   const loadSavedImages = () => {
-    const images = loadSavedImagesFromStorage();
-    if (images) {
-      // Filter to only show valid gallery images
-      const filteredImages = images.filter((image: UploadedImage) => 
-        isValidGalleryImage(image.preview)
-      );
-      setSavedImages(filteredImages);
-      
-      // Update localStorage if we filtered out any images
-      if (filteredImages.length !== images.length) {
-        try {
-          localStorage.setItem('uploadedBulkImages', JSON.stringify(filteredImages));
-        } catch (error) {
-          console.warn('Failed to update filtered images in storage:', error);
-        }
-      }
-    } else {
-      setSavedImages([]);
-    }
+    const galleryImages = StorageManager.getGalleryImages();
+    const uploadedImages = galleryImages.map(img => ({
+      id: img.id,
+      preview: img.url,
+      name: img.alt,
+      uploadDate: img.uploadDate,
+      size: img.size
+    }));
+    setSavedImages(uploadedImages);
   };
 
   const handleFileChange = (newFiles: File[]) => {
     console.log('Selected', newFiles.length, 'new files');
     
     // Check storage before allowing more files
-    const storageStats = getStorageStats();
+    const storageStats = StorageManager.getStorageStats();
     if (storageStats.usagePercentage > 90) {
       toast.error("Storage nearly full", {
         description: `Current usage: ${storageStats.usagePercentage}%. Please clear some images first.`
@@ -87,23 +76,23 @@ export const useBulkImageUpload = () => {
   };
 
   const handleRemoveSavedImage = (id: number) => {
-    setSavedImages(prev => {
-      const filtered = prev.filter(image => image.id !== id);
-      try {
-        localStorage.setItem('uploadedBulkImages', JSON.stringify(filtered));
-      } catch (error) {
-        console.warn('Failed to update storage after removing image:', error);
-      }
-      return filtered;
-    });
-
-    // Also update the gallery images if needed
-    removeFromGallery(id);
-    toast.success("Image removed successfully");
+    try {
+      StorageManager.removeImage(id);
+      loadSavedImages();
+      toast.success("Image removed successfully");
+    } catch (error) {
+      console.error('Error removing image:', error);
+      toast.error("Failed to remove image");
+    }
   };
 
   const handleDownloadImage = (image: UploadedImage) => {
-    downloadImage(image.preview, image.name || `image-${image.id}.jpg`);
+    const link = document.createElement('a');
+    link.href = image.preview;
+    link.download = `${image.name || 'image'}.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleBulkUpload = async () => {
@@ -119,53 +108,80 @@ export const useBulkImageUpload = () => {
     setUploadProgress(0);
 
     try {
-      // Show initial progress
+      const storageStats = StorageManager.getStorageStats();
+      const availableSpace = storageStats.available;
+      const estimatedSpacePerImage = availableSpace / selectedFiles.length;
+      
+      console.log('Available space:', availableSpace, 'bytes');
+      console.log('Estimated space per image:', estimatedSpacePerImage, 'bytes');
+
       toast.info("Processing images...", {
         description: "Compressing and uploading images to gallery"
       });
 
-      const result = await processBulkUpload(selectedFiles);
-      
-      if (result.successful > 0) {
-        const compressionInfo = result.compressionStats ? 
-          ` (${result.compressionStats.averageCompressionRatio}% compression)` : '';
+      const processedImages = await ImageProcessor.processImageBatch(
+        selectedFiles,
+        {
+          maxWidth: 1920,
+          maxHeight: 1080,
+          quality: 0.8,
+          format: 'image/jpeg',
+          targetSize: Math.min(estimatedSpacePerImage * 0.8, 500 * 1024) // Max 500KB per image
+        },
+        (processed, total) => {
+          setUploadProgress(Math.round((processed / total) * 100));
+        }
+      );
+
+      console.log('Images processed:', processedImages.length);
+
+      let successful = 0;
+      let failed = 0;
+
+      for (const processed of processedImages) {
+        try {
+          const fileName = selectedFiles[processedImages.indexOf(processed)]?.name || 'Unknown';
+          const altText = fileName.replace(/\.[^/.]+$/, ''); // Remove extension
+          
+          StorageManager.addImage(processed.dataUrl, altText);
+          successful++;
+        } catch (error) {
+          console.error('Error saving image:', error);
+          failed++;
+          
+          if (error instanceof Error && error.message.includes('quota')) {
+            toast.error("Storage quota exceeded", {
+              description: "Please clear some existing images and try uploading fewer images at once."
+            });
+            break;
+          }
+        }
+      }
+
+      if (successful > 0) {
+        const avgCompression = Math.round(
+          processedImages.reduce((sum, img) => sum + img.compressionRatio, 0) / processedImages.length
+        );
         
-        toast.success(`Successfully uploaded ${result.successful} images${compressionInfo}`, {
-          description: "Images are now visible in the gallery"
+        toast.success(`Successfully uploaded ${successful} images`, {
+          description: `Average compression: ${avgCompression}%. Images are now visible in the gallery.`
         });
         
-        setSelectedFiles([]); // Clear selected files
-        
-        // Reload saved images
-        setTimeout(() => {
-          loadSavedImages();
-        }, 100);
+        setSelectedFiles([]);
+        loadSavedImages();
       }
       
-      if (result.failed > 0) {
-        toast.error(`${result.failed} images failed to upload`, {
-          description: "Please try uploading the failed images again"
+      if (failed > 0) {
+        toast.error(`${failed} images failed to upload`, {
+          description: "Please try uploading the failed images again or clear some storage space."
         });
       }
       
     } catch (error) {
       console.error("Error during bulk upload:", error);
-      
-      if (error instanceof StorageError) {
-        if (error.type === 'QUOTA_EXCEEDED') {
-          toast.error("Storage quota exceeded", {
-            description: "Please clear some existing images and try uploading fewer images at once."
-          });
-        } else {
-          toast.error("Storage error", {
-            description: error.message
-          });
-        }
-      } else {
-        toast.error("Upload failed", {
-          description: error instanceof Error ? error.message : "Please try again with fewer images."
-        });
-      }
+      toast.error("Upload failed", {
+        description: error instanceof Error ? error.message : "Please try again with fewer images."
+      });
     } finally {
       setIsUploading(false);
       setUploadProgress(0);

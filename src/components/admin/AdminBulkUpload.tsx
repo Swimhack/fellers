@@ -2,8 +2,10 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Trash2, AlertTriangle } from 'lucide-react';
 import { useBulkImageUpload } from '@/hooks/useBulkImageUpload';
-import { getStorageStats } from '@/utils/imageCompressionUtils';
+import { StorageManager } from '@/utils/storageManager';
+import { toast } from 'sonner';
 import ImageUploadArea from './image-upload/ImageUploadArea';
 import ImagePreviewGrid from './image-upload/ImagePreviewGrid';
 import SavedImagesGrid from './image-upload/SavedImagesGrid';
@@ -13,6 +15,7 @@ const AdminBulkUpload = () => {
     uploadedImages,
     savedImages,
     isUploading,
+    uploadProgress,
     handleFileChange,
     handleRemoveImage,
     handleRemoveSavedImage,
@@ -20,7 +23,25 @@ const AdminBulkUpload = () => {
     handleBulkUpload
   } = useBulkImageUpload();
 
-  const storageStats = getStorageStats();
+  const storageStats = StorageManager.getStorageStats();
+
+  const handleClearAllImages = () => {
+    if (window.confirm('Are you sure you want to clear all images? This action cannot be undone.')) {
+      StorageManager.clearAllImages();
+      toast.success('All images cleared successfully');
+      window.location.reload();
+    }
+  };
+
+  const handleCleanupOldImages = () => {
+    const removedCount = StorageManager.cleanupOldImages();
+    if (removedCount > 0) {
+      toast.success(`Cleaned up ${removedCount} old images`);
+      window.location.reload();
+    } else {
+      toast.info('No old images to clean up');
+    }
+  };
 
   return (
     <div className="p-6 space-y-8 max-w-7xl mx-auto">
@@ -32,10 +53,15 @@ const AdminBulkUpload = () => {
       {/* Storage Usage Information */}
       <Card className="bg-fellers-darkBackground border border-gray-700">
         <CardHeader className="pb-4">
-          <CardTitle className="text-white text-xl">Storage Usage</CardTitle>
+          <CardTitle className="text-white text-xl flex items-center gap-2">
+            Storage Usage
+            {storageStats.usagePercentage > 80 && (
+              <AlertTriangle className="w-5 h-5 text-yellow-400" />
+            )}
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-gray-300">Usage:</span>
               <span className={`font-medium ${
@@ -55,11 +81,28 @@ const AdminBulkUpload = () => {
               />
             </div>
             <div className="text-sm text-gray-400">
-              {Math.round(storageStats.totalSize / 1024 / 1024 * 100) / 100} MB used of ~5 MB limit
+              {Math.round(storageStats.used / 1024 / 1024 * 100) / 100} MB used of {Math.round(storageStats.total / 1024 / 1024 * 100) / 100} MB
             </div>
             {storageStats.usagePercentage > 80 && (
-              <div className="text-sm text-red-400">
-                ⚠️ Storage nearly full. Consider clearing old images before uploading more.
+              <div className="flex gap-2 mt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCleanupOldImages}
+                  className="text-yellow-400 border-yellow-400 hover:bg-yellow-400/10"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Cleanup Old Images
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClearAllImages}
+                  className="text-red-400 border-red-400 hover:bg-red-400/10"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Clear All Images
+                </Button>
               </div>
             )}
           </div>
@@ -84,7 +127,13 @@ const AdminBulkUpload = () => {
             disabled={uploadedImages.length === 0 || isUploading}
             className="w-full admin-btn-primary py-3 text-lg font-medium"
           >
-            {isUploading ? 'Processing & Compressing...' : `Upload ${uploadedImages.length} Images`}
+            {isUploading ? (
+              <span className="flex items-center gap-2">
+                Processing... {uploadProgress > 0 && `${uploadProgress}%`}
+              </span>
+            ) : (
+              `Upload ${uploadedImages.length} Images`
+            )}
           </Button>
           
           <ImagePreviewGrid 
