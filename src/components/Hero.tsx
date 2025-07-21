@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { Phone } from 'lucide-react';
 import FellersLogo from './FellersLogo';
@@ -22,17 +23,23 @@ const Hero = () => {
   const [backgroundImages, setBackgroundImages] = useState<string[]>([fallbackImage]);
   
   const loadHeroImages = () => {
+    console.log('Loading hero images...');
     const savedImages = localStorage.getItem('galleryImages');
+    
     if (savedImages) {
       try {
         const parsedImages: GalleryImage[] = JSON.parse(savedImages);
         const filteredImages = filterGalleryImages(parsedImages);
+        console.log('Hero - filtered images:', filteredImages);
         
         if (filteredImages.length > 0) {
           const sortedImages = [...filteredImages].sort((a, b) => a.order - b.order);
-          setBackgroundImages(sortedImages.map(img => img.url));
+          const imageUrls = sortedImages.map(img => img.url);
+          setBackgroundImages(imageUrls);
+          console.log('Hero - using gallery images:', imageUrls);
         } else {
           setBackgroundImages([fallbackImage]);
+          console.log('Hero - using fallback image');
         }
         
         // Update localStorage with filtered images if any were removed
@@ -44,6 +51,7 @@ const Hero = () => {
         setBackgroundImages([fallbackImage]);
       }
     } else {
+      console.log('Hero - no saved images, using fallback');
       setBackgroundImages([fallbackImage]);
     }
   };
@@ -131,7 +139,7 @@ const Hero = () => {
               variant="outline" 
               className="border-2 border-fellers-white bg-fellers-purpleFrom hover:bg-fellers-purpleTo text-fellers-white font-bold py-4 md:py-6 px-6 md:px-8 rounded-lg transition-colors"
             >
-              <a href="#contact" className="w-full h-full flex items-center justify-center">Request Service</a>
+              <a href="#gallery" className="w-full h-full flex items-center justify-center">Request Service</a>
             </Button>
           </div>
         </div>

@@ -43,6 +43,9 @@ export const removeFromGallery = (id: number) => {
       const galleryImages = JSON.parse(galleryImagesString);
       const updatedGallery = galleryImages.filter((img: any) => img.id !== id);
       localStorage.setItem('galleryImages', JSON.stringify(updatedGallery));
+      
+      // Trigger update event
+      window.dispatchEvent(new CustomEvent('galleryImagesUpdated'));
     } catch (error) {
       console.error("Error updating gallery images:", error);
     }
@@ -67,7 +70,7 @@ export const downloadImage = (url: string, filename: string) => {
 
 // Simplified bulk upload process
 export const processBulkUpload = async (files: File[]) => {
-  console.log('Starting simplified bulk upload with', files.length, 'files');
+  console.log('Starting bulk upload process with', files.length, 'files');
   
   const processedImages = [];
   const failedImages = [];
@@ -114,21 +117,26 @@ export const processBulkUpload = async (files: File[]) => {
     galleryImages = [];
   }
   
-  // Create new gallery entries
+  console.log('Existing gallery images:', galleryImages);
+  
+  // Create new gallery entries with proper structure
   const nextId = galleryImages.length > 0 
     ? Math.max(...galleryImages.map((img: any) => img.id || 0)) + 1 
     : 1;
   
   const newGalleryImages = processedImages.map((img, index) => ({
     id: nextId + index,
-    url: img.preview,
-    alt: `${img.name}` || `Fellers Resources equipment ${nextId + index}`,
+    url: img.preview, // Use the base64 data URL
+    alt: img.name ? `${img.name.replace(/\.[^/.]+$/, '')}` : `Fellers Resources equipment ${nextId + index}`,
     order: galleryImages.length + index + 1
   }));
+  
+  console.log('New gallery images to add:', newGalleryImages);
   
   // Save to gallery
   const updatedGallery = [...galleryImages, ...newGalleryImages];
   localStorage.setItem('galleryImages', JSON.stringify(updatedGallery));
+  console.log('Updated gallery saved to localStorage:', updatedGallery);
   
   // Save to bulk upload storage
   let savedImages = [];
@@ -144,9 +152,11 @@ export const processBulkUpload = async (files: File[]) => {
   
   const updatedSaved = [...savedImages, ...processedImages];
   localStorage.setItem('uploadedBulkImages', JSON.stringify(updatedSaved));
+  console.log('Updated bulk upload images saved to localStorage');
   
   // Trigger update event
   window.dispatchEvent(new CustomEvent('galleryImagesUpdated'));
+  console.log('Gallery update event triggered');
   
   console.log(`Upload complete: ${processedImages.length} successful, ${failedImages.length} failed`);
   
