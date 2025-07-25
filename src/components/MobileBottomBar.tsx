@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Phone, Mail, ClipboardList } from 'lucide-react';
+import { Phone, Mail, ClipboardList, ImageIcon } from 'lucide-react';
 
 const MobileBottomBar = () => {
   return (
@@ -8,25 +8,33 @@ const MobileBottomBar = () => {
       <div className="flex justify-around items-center">
         <a 
           href="tel:9366629930" 
-          className="flex flex-col items-center justify-center py-3 px-4 text-white hover:text-fellers-green transition-colors flex-1 active:bg-black/20"
+          className="flex flex-col items-center justify-center py-2 px-2 text-white hover:text-fellers-green transition-colors flex-1 active:bg-black/20"
         >
-          <Phone className="h-6 w-6 mb-1" />
+          <Phone className="h-5 w-5 mb-1" />
           <span className="text-xs font-medium">Call</span>
         </a>
         
         <a 
-          href="mailto:dispatch@fellersresources.com" 
-          className="flex flex-col items-center justify-center py-3 px-4 text-white hover:text-fellers-green transition-colors flex-1 active:bg-black/20"
+          href="/gallery" 
+          className="flex flex-col items-center justify-center py-2 px-2 text-white hover:text-fellers-green transition-colors flex-1 active:bg-black/20"
         >
-          <Mail className="h-6 w-6 mb-1" />
+          <ImageIcon className="h-5 w-5 mb-1" />
+          <span className="text-xs font-medium">Gallery</span>
+        </a>
+        
+        <a 
+          href="mailto:dispatch@fellersresources.com" 
+          className="flex flex-col items-center justify-center py-2 px-2 text-white hover:text-fellers-green transition-colors flex-1 active:bg-black/20"
+        >
+          <Mail className="h-5 w-5 mb-1" />
           <span className="text-xs font-medium">Email</span>
         </a>
         
         <a 
           href="#contact" 
-          className="flex flex-col items-center justify-center py-3 px-4 text-white hover:text-fellers-green transition-colors flex-1 active:bg-black/20"
+          className="flex flex-col items-center justify-center py-2 px-2 text-white hover:text-fellers-green transition-colors flex-1 active:bg-black/20"
         >
-          <ClipboardList className="h-6 w-6 mb-1" />
+          <ClipboardList className="h-5 w-5 mb-1" />
           <span className="text-xs font-medium">Request</span>
         </a>
       </div>

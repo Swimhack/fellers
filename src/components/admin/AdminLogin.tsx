@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import FellersLogo from '@/components/FellersLogo';
 
-const DEFAULT_USERNAME = "admin";
-const DEFAULT_PASSWORD = "password";
+const DEFAULT_USERNAME = import.meta.env.VITE_ADMIN_USERNAME || "admin";
+const DEFAULT_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || "FellersAdmin2024!";
 
 const AdminLogin = () => {
   const [username, setUsername] = useState("");
