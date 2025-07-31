@@ -91,8 +91,8 @@ export const processBulkUpload = (
       
       // Convert uploaded images to base64 for persistence
       const newGalleryImages = await Promise.all(
-        uploadedImages.map(async (img, index) => {
-          const base64Url = await convertToBase64(img.file);
+        uploadedImages.filter(img => img.file).map(async (img, index) => {
+          const base64Url = await convertToBase64(img.file!);
           return {
             id: nextId + index,
             url: base64Url,
@@ -108,9 +108,9 @@ export const processBulkUpload = (
       
       // Convert uploaded images to base64 for saved images storage
       const updatedUploadedImages = await Promise.all(
-        uploadedImages.map(async (img) => ({
+        uploadedImages.filter(img => img.file).map(async (img) => ({
           ...img,
-          preview: await convertToBase64(img.file)
+          preview: await convertToBase64(img.file!)
         }))
       );
       
@@ -144,7 +144,7 @@ export const processBulkUpload = (
 // Types
 export interface UploadedImage {
   id: number;
-  file: File;
+  file?: File;
   preview: string;
   name: string;
   uploadDate: string;

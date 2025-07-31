@@ -7,6 +7,7 @@ import { isValidGalleryImage } from '@/utils/galleryUtils';
 
 export interface UploadedImage {
   id: number;
+  file?: File;
   preview: string;
   name: string;
   uploadDate: string;

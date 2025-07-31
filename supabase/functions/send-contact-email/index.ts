@@ -28,7 +28,7 @@ serve(async (req) => {
     const emailData = {
       from: FROM_EMAIL,
       to: [TO_EMAIL],
-      subject: `New Service Request from ${name}`,
+      subject: `Website Contact form: ${name}`,
       text: `
 New service request received:
 
