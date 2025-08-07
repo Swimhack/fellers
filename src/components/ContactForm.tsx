@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from "sonner";
 import { Textarea } from '@/components/ui/textarea';
 import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
+import { sendContactEmail } from '@/utils/emailService';
+import { testDatabaseConnection } from '@/utils/databaseSetup';
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({
@@ -24,6 +26,17 @@ const ContactForm = () => {
     console.log('Supabase configured:', isSupabaseConfigured);
     if (isSupabaseConfigured && supabase) {
       console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
+      
+      // Test database connection
+      testDatabaseConnection().then(result => {
+        console.log('Database connection test:', result);
+        if (!result.connected) {
+          console.warn('Database connection issue:', result.error);
+          if (result.code === '42P01') {
+            console.warn('Contacts table does not exist - please run the SQL migration');
+          }
+        }
+      });
     }
   }, []);
   
@@ -46,45 +59,47 @@ const ContactForm = () => {
       return;
     }
     
-    try {
-      // First, save to database
-      const { data: contactData, error: dbError } = await supabase
-        .from('contacts')
-        .insert({
-          name: formData.name,
-          phone: formData.phone,
-          email: formData.email || 'No email provided',
-          location: formData.location,
-          details: formData.details,
-          status: 'new',
-          created_at: new Date().toISOString()
-        })
-        .select()
-        .single();
+    let databaseSaved = false;
+    let emailSent = false;
 
-      if (dbError) {
-        console.error('Database error:', dbError);
-        console.error('Database error details:', {
-          message: dbError.message,
-          code: dbError.code,
-          details: dbError.details,
-          hint: dbError.hint
-        });
-        // Show specific error to help debug
-        if (dbError.code === '42501') {
-          toast.error('Database permission error', {
-            description: 'Please ensure the contacts table has proper permissions for anonymous inserts.',
-            duration: 7000
+    try {
+      // First, try to save to database
+      try {
+        const { data: contactData, error: dbError } = await supabase
+          .from('contacts')
+          .insert({
+            name: formData.name,
+            phone: formData.phone,
+            email: formData.email || 'No email provided',
+            location: formData.location,
+            details: formData.details,
+            status: 'new',
+            created_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+
+        if (dbError) {
+          console.error('Database error:', dbError);
+          console.error('Database error details:', {
+            message: dbError.message,
+            code: dbError.code,
+            details: dbError.details,
+            hint: dbError.hint
           });
-        } else if (dbError.code === '42P01') {
-          toast.error('Database table not found', {
-            description: 'The contacts table needs to be created. Please run the SQL migration.',
-            duration: 7000
-          });
+          
+          // Specific error handling
+          if (dbError.code === '42501') {
+            console.warn('Database permission error - table may need RLS policy for anon users');
+          } else if (dbError.code === '42P01') {
+            console.warn('Database table not found - contacts table needs to be created');
+          }
+        } else {
+          console.log('Contact saved to database:', contactData);
+          databaseSaved = true;
         }
-        // Continue even if database save fails
-      } else {
-        console.log('Contact saved to database:', contactData);
+      } catch (dbException) {
+        console.error('Database save exception:', dbException);
       }
 
       // Then try to send email via edge function
@@ -101,18 +116,63 @@ const ContactForm = () => {
 
         if (error) {
           console.error('Email function error:', error);
-          // Don't throw - we still saved to database
+        } else {
+          console.log('Email sent successfully:', data);
+          emailSent = true;
         }
       } catch (emailError) {
-        console.error('Email sending failed:', emailError);
-        // Don't throw - we still saved to database
+        console.error('Edge function email failed:', emailError);
+        
+        // Try direct email service as fallback
+        try {
+          console.log('Trying direct email service...');
+          const directEmailResult = await sendContactEmail({
+            name: formData.name,
+            phone: formData.phone,
+            email: formData.email || "No email provided",
+            location: formData.location,
+            details: formData.details
+          });
+          
+          if (directEmailResult.success) {
+            console.log('Direct email sent successfully');
+            emailSent = true;
+          }
+        } catch (directEmailError) {
+          console.error('Direct email service also failed:', directEmailError);
+        }
       }
-      
-      handleSuccessSubmission();
+
+      // Show appropriate success message based on what worked
+      if (databaseSaved || emailSent) {
+        handleSuccessSubmission();
+        if (databaseSaved && !emailSent) {
+          toast.info('Contact saved - email notification may be delayed', {
+            description: 'Your request has been recorded and we\'ll contact you soon.',
+            duration: 5000
+          });
+        }
+      } else {
+        // Both failed - show error but still reset form for user convenience
+        console.error('Both database and email failed');
+        toast.error('Unable to process your request', {
+          description: 'Please call our dispatch directly at 936-662-9930 for immediate assistance.',
+          duration: 8000
+        });
+        // Still reset the form
+        setFormData({
+          name: '',
+          phone: '',
+          email: '',
+          location: '',
+          details: ''
+        });
+        setIsSubmitting(false);
+      }
     } catch (error) {
       console.error('Form submission failed:', error);
       toast.error('Failed to send your request', {
-        description: 'Please try again or call our dispatch directly.',
+        description: 'Please try again or call our dispatch directly at 936-662-9930.',
         duration: 5000
       });
       setIsSubmitting(false);
