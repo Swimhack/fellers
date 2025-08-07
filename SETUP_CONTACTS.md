@@ -7,19 +7,21 @@
    - Navigate to SQL Editor
    - Copy and run the contents of `supabase/migrations/001_create_contacts_table.sql`
    - This will create the `contacts` table with proper structure and permissions
+   - **Important**: The table allows anonymous inserts for contact form submissions
 
-2. **Configure Supabase Edge Functions:**
+2. **Configure Supabase Edge Functions (Optional for email):**
    - Deploy the edge function in `supabase/functions/send-contact-email/`
    - Set the following environment variables in Supabase Edge Functions settings:
-     - `RESEND_API_KEY`: Your Resend API key
-     - `FROM_EMAIL`: The sender email address
+     - `RESEND_API_KEY`: Your Resend API key (get from resend.com)
+     - `FROM_EMAIL`: The sender email address (must be verified in Resend)
      - `TO_EMAIL`: The recipient email address for notifications
+   - Deploy command: `supabase functions deploy send-contact-email`
 
 3. **Environment Variables:**
-   - Copy `.env.example` to `.env` (if not already done)
+   - The `.env` file has been created with your credentials
    - Ensure these variables are set:
      ```
-     VITE_SUPABASE_URL=your_supabase_url
+     VITE_SUPABASE_URL=https://icfwkxvhdnqncyhyncmj.supabase.co
      VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
      ```
 

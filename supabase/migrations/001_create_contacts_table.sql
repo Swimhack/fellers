@@ -23,6 +23,12 @@ CREATE POLICY "Authenticated users can read contacts" ON public.contacts
     TO authenticated
     USING (true);
 
+-- Create policy for anonymous users to insert contacts (for contact form submissions)
+CREATE POLICY "Anyone can insert contacts" ON public.contacts
+    FOR INSERT
+    TO anon
+    WITH CHECK (true);
+
 -- Create policy for service role to insert contacts
 CREATE POLICY "Service role can insert contacts" ON public.contacts
     FOR INSERT

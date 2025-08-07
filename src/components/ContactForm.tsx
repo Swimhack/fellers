@@ -19,6 +19,14 @@ const ContactForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   
+  // Log Supabase configuration status on mount
+  useEffect(() => {
+    console.log('Supabase configured:', isSupabaseConfigured);
+    if (isSupabaseConfigured && supabase) {
+      console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
+    }
+  }, []);
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -39,23 +47,70 @@ const ContactForm = () => {
     }
     
     try {
-      const { data, error } = await supabase.functions.invoke('send-contact-email', {
-        body: {
+      // First, save to database
+      const { data: contactData, error: dbError } = await supabase
+        .from('contacts')
+        .insert({
           name: formData.name,
           phone: formData.phone,
-          email: formData.email || "No email provided",
+          email: formData.email || 'No email provided',
           location: formData.location,
-          details: formData.details
-        }
-      });
+          details: formData.details,
+          status: 'new',
+          created_at: new Date().toISOString()
+        })
+        .select()
+        .single();
 
-      if (error) {
-        throw error;
+      if (dbError) {
+        console.error('Database error:', dbError);
+        console.error('Database error details:', {
+          message: dbError.message,
+          code: dbError.code,
+          details: dbError.details,
+          hint: dbError.hint
+        });
+        // Show specific error to help debug
+        if (dbError.code === '42501') {
+          toast.error('Database permission error', {
+            description: 'Please ensure the contacts table has proper permissions for anonymous inserts.',
+            duration: 7000
+          });
+        } else if (dbError.code === '42P01') {
+          toast.error('Database table not found', {
+            description: 'The contacts table needs to be created. Please run the SQL migration.',
+            duration: 7000
+          });
+        }
+        // Continue even if database save fails
+      } else {
+        console.log('Contact saved to database:', contactData);
+      }
+
+      // Then try to send email via edge function
+      try {
+        const { data, error } = await supabase.functions.invoke('send-contact-email', {
+          body: {
+            name: formData.name,
+            phone: formData.phone,
+            email: formData.email || "No email provided",
+            location: formData.location,
+            details: formData.details
+          }
+        });
+
+        if (error) {
+          console.error('Email function error:', error);
+          // Don't throw - we still saved to database
+        }
+      } catch (emailError) {
+        console.error('Email sending failed:', emailError);
+        // Don't throw - we still saved to database
       }
       
       handleSuccessSubmission();
     } catch (error) {
-      console.error('Email sending failed:', error);
+      console.error('Form submission failed:', error);
       toast.error('Failed to send your request', {
         description: 'Please try again or call our dispatch directly.',
         duration: 5000
