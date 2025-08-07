@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Image, Upload } from 'lucide-react';
+import { Image, Upload, Users } from 'lucide-react';
 import FellersLogo from '@/components/FellersLogo';
 import { 
   Sidebar, 
@@ -50,6 +50,21 @@ const AdminSidebar = () => {
               >
                 <Upload className="mr-2 text-fellers-green" />
                 <span>Bulk Upload</span>
+              </NavLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Contact Submissions">
+              <NavLink 
+                to="/admin/contacts" 
+                className={({ isActive }) => 
+                  isActive 
+                    ? "bg-fellers-brightPurple text-white" 
+                    : "text-gray-200 hover:bg-gray-700 hover:text-fellers-green"
+                }
+              >
+                <Users className="mr-2 text-fellers-green" />
+                <span>Contact Submissions</span>
               </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>

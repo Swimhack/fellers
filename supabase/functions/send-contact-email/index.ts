@@ -1,5 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,6 +15,35 @@ serve(async (req) => {
 
   try {
     const { name, phone, email, location, details } = await req.json()
+
+    // Get Supabase URL and Service Role Key
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    
+    // Create Supabase client with service role key for database operations
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    
+    // Save contact submission to database
+    const { data: contactData, error: dbError } = await supabase
+      .from('contacts')
+      .insert({
+        name,
+        phone,
+        email: email || 'No email provided',
+        location,
+        details,
+        created_at: new Date().toISOString(),
+        status: 'new'
+      })
+      .select()
+      .single()
+
+    if (dbError) {
+      console.error('Database error:', dbError)
+      // Continue with email even if database save fails
+    } else {
+      console.log('Contact saved to database:', contactData)
+    }
 
     // Get Resend credentials from Supabase secrets
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')

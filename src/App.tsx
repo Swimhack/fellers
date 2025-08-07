@@ -11,6 +11,7 @@ import Admin from "./pages/Admin";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import AdminLayout from "./pages/admin/AdminLayout";
 import BulkUploadImagesTab from "./pages/admin/BulkUploadImagesTab";
+import AdminContactsPage from "./pages/admin/AdminContactsPage";
 import AdminRoute from "./components/admin/AdminRoute";
 import "./App.css";
 
@@ -42,6 +43,14 @@ const App = () => (
             </AdminRoute>
           }>
             <Route index element={<BulkUploadImagesTab />} />
+          </Route>
+          
+          <Route path="/admin/contacts" element={
+            <AdminRoute>
+              <AdminLayout />
+            </AdminRoute>
+          }>
+            <Route index element={<AdminContactsPage />} />
           </Route>
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
