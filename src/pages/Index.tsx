@@ -8,7 +8,7 @@ import Gallery from '@/components/Gallery';
 import ServiceMap from '@/components/ServiceMap';
 import Testimonials from '@/components/Testimonials';
 import GoogleReviews from '@/components/GoogleReviews';
-import ContactFormSimple from '@/components/ContactFormSimple';
+import ContactForm from '@/components/ContactForm';
 import MobileBottomBar from '@/components/MobileBottomBar';
 import Footer from '@/components/Footer';
 import SEOSchema from '@/components/SEOSchema';
@@ -42,7 +42,7 @@ const Index = () => {
           <ServiceMap />
           <Testimonials />
           <GoogleReviews />
-          <ContactFormSimple />
+          <ContactForm />
         </main>
         <MobileBottomBar />
         <Footer />
