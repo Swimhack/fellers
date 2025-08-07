@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 import { ContactSubmission } from '@/types/contact';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,7 @@ import { Phone, Mail, MapPin, Calendar, MessageSquare } from 'lucide-react';
 const ContactSubmissions = () => {
   const [submissions, setSubmissions] = useState<ContactSubmission[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchSubmissions();
@@ -17,16 +18,34 @@ const ContactSubmissions = () => {
 
   const fetchSubmissions = async () => {
     try {
+      console.log('Checking Supabase configuration...');
+      console.log('isSupabaseConfigured:', isSupabaseConfigured);
+      console.log('supabase client:', supabase);
+
+      if (!isSupabaseConfigured || !supabase) {
+        throw new Error('Supabase is not configured');
+      }
+
+      console.log('Fetching contact submissions...');
       const { data, error } = await supabase
         .from('contact_submissions')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      console.log('Supabase response:', { data, error });
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      
       setSubmissions(data || []);
-    } catch (error) {
+      setError(null);
+    } catch (error: any) {
       console.error('Failed to fetch submissions:', error);
-      toast.error('Failed to load contact submissions');
+      const errorMessage = error?.message || 'Unknown error occurred';
+      setError(errorMessage);
+      toast.error(`Failed to load contact submissions: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -62,6 +81,22 @@ const ContactSubmissions = () => {
 
   if (loading) {
     return <div className="p-6">Loading contact submissions...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <Card>
+          <CardContent className="text-center py-12">
+            <p className="text-destructive mb-4">Error loading contact submissions</p>
+            <p className="text-muted-foreground text-sm mb-4">{error}</p>
+            <Button onClick={fetchSubmissions} variant="outline">
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
