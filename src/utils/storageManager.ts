@@ -18,6 +18,10 @@ export interface GalleryImage {
   order: number;
   uploadDate: string;
   size?: number;
+  metadata?: {
+    source?: 'admin' | 'default';
+    fileName?: string;
+  };
 }
 
 export class StorageManager {
@@ -102,23 +106,41 @@ export class StorageManager {
     }
   }
 
-  static addImage(imageData: string, alt: string): number {
-    const images = this.getGalleryImages();
-    const newId = images.length > 0 ? Math.max(...images.map(img => img.id)) + 1 : 1;
-    
-    const newImage: GalleryImage = {
-      id: newId,
-      url: imageData,
-      alt,
-      order: images.length + 1,
-      uploadDate: new Date().toISOString(),
-      size: imageData.length * 2 // Approximate UTF-16 size
-    };
-    
-    const updatedImages = [...images, newImage];
-    this.saveGalleryImages(updatedImages);
-    
-    return newId;
+  static addImage(imageData: string, alt: string, metadata?: { source?: 'admin' | 'default', fileName?: string }): number {
+    try {
+      // Check storage before adding
+      const stats = this.getStorageStats();
+      const estimatedSize = imageData.length * 2; // UTF-16 encoding
+      
+      if (stats.used + estimatedSize > this.MAX_STORAGE_SIZE) {
+        throw new Error(`Storage quota would be exceeded. Available: ${Math.round(stats.available / 1024)}KB, Required: ${Math.round(estimatedSize / 1024)}KB`);
+      }
+      
+      const images = this.getGalleryImages();
+      const newId = images.length > 0 ? Math.max(...images.map(img => img.id)) + 1 : 1;
+      
+      const newImage: GalleryImage = {
+        id: newId,
+        url: imageData,
+        alt,
+        order: images.length + 1,
+        uploadDate: new Date().toISOString(),
+        size: estimatedSize,
+        metadata: {
+          source: metadata?.source || 'default',
+          fileName: metadata?.fileName
+        }
+      };
+      
+      const updatedImages = [...images, newImage];
+      this.saveGalleryImages(updatedImages);
+      
+      console.log(`Added image (${metadata?.source || 'default'}):`, { id: newId, size: `${Math.round(estimatedSize / 1024)}KB` });
+      return newId;
+    } catch (error) {
+      console.error('Error adding image:', error);
+      throw error;
+    }
   }
 
   static removeImage(id: number): void {

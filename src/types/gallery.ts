@@ -4,6 +4,12 @@ export interface GalleryImage {
   url: string;
   alt: string;
   order: number;
+  uploadDate?: string;
+  size?: number;
+  metadata?: {
+    source?: 'admin' | 'default';
+    fileName?: string;
+  };
 }
 
 export interface ImageLoadState {

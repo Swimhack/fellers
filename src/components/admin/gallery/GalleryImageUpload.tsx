@@ -46,21 +46,35 @@ const GalleryImageUpload = ({ galleryImages, onAddImage }: GalleryImageUploadPro
       return;
     }
 
-    const newImage: GalleryImage = {
-      id: galleryImages.length > 0 ? Math.max(...galleryImages.map(img => img.id)) + 1 : 1,
-      url: newImageUrl,
-      alt: newImageAlt || `Fellers Resources heavy towing equipment ${galleryImages.length + 1}`,
-      order: galleryImages.length + 1
-    };
+    try {
+      const newImage: GalleryImage = {
+        id: galleryImages.length > 0 ? Math.max(...galleryImages.map(img => img.id)) + 1 : 1,
+        url: newImageUrl,
+        alt: newImageAlt || `Fellers Resources heavy towing equipment ${galleryImages.length + 1}`,
+        order: galleryImages.length + 1,
+        uploadDate: new Date().toISOString(),
+        metadata: {
+          source: 'admin',
+          fileName: newImageUrl.split('/').pop()
+        }
+      };
 
-    onAddImage(newImage);
-    setNewImageUrl("");
-    setNewImageAlt("");
+      onAddImage(newImage);
+      setNewImageUrl("");
+      setNewImageAlt("");
 
-    toast({
-      title: "Success",
-      description: "Image added successfully and updated on front-end",
-    });
+      toast({
+        title: "Success",
+        description: "Image added successfully and will appear in the gallery carousel",
+      });
+    } catch (error) {
+      console.error('Error adding image:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to add image. Storage may be full.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
