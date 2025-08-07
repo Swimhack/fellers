@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { ContactSubmission } from '@/types/contact';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,10 +19,9 @@ const ContactSubmissions = () => {
   const fetchSubmissions = async () => {
     try {
       console.log('Checking Supabase configuration...');
-      console.log('isSupabaseConfigured:', isSupabaseConfigured);
       console.log('supabase client:', supabase);
 
-      if (!isSupabaseConfigured || !supabase) {
+      if (!supabase) {
         throw new Error('Supabase is not configured');
       }
 
@@ -39,7 +38,10 @@ const ContactSubmissions = () => {
         throw error;
       }
       
-      setSubmissions(data || []);
+      setSubmissions((data || []).map(item => ({
+        ...item,
+        status: item.status as 'new' | 'contacted' | 'resolved'
+      })));
       setError(null);
     } catch (error: any) {
       console.error('Failed to fetch submissions:', error);

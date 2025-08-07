@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from "sonner";
 import { Textarea } from '@/components/ui/textarea';
-import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({
@@ -28,7 +28,7 @@ const ContactForm = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    if (!isSupabaseConfigured || !supabase) {
+    if (!supabase) {
       console.log('Form submitted (Supabase not configured):', formData);
       toast.success("Form submitted successfully!", {
         description: "We'll contact you soon via the phone number provided.",
