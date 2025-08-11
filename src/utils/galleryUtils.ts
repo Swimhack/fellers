@@ -14,8 +14,14 @@ export const validateImageUrl = async (url: string): Promise<boolean> => {
 };
 
 export const isValidGalleryImage = (url: string): boolean => {
-  // Accept /lovable-uploads/ images and Base64 data URLs
-  return url.includes('/lovable-uploads/') || url.startsWith('data:image/');
+  // Accept Supabase public storage URLs, /lovable-uploads/ images, Base64 data URLs, and standard http(s) images
+  return (
+    url.includes('/lovable-uploads/') ||
+    url.startsWith('data:image/') ||
+    url.includes('/storage/v1/object/public/') ||
+    url.startsWith('http://') ||
+    url.startsWith('https://')
+  );
 };
 
 export const filterGalleryImages = (images: any[]): any[] => {
