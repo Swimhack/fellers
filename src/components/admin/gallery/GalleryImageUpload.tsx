@@ -30,7 +30,7 @@ const GalleryImageUpload = ({ galleryImages, onAddImage }: GalleryImageUploadPro
     if (!isValidGalleryImage(newImageUrl)) {
       toast({
         title: "Error",
-        description: "Only images from /lovable-uploads/ directory are allowed",
+        description: "Only images from /images/ directory are allowed",
         variant: "destructive",
       });
       return;
@@ -73,7 +73,7 @@ const GalleryImageUpload = ({ galleryImages, onAddImage }: GalleryImageUploadPro
           <div className="md:col-span-2">
             <Input
               type="text"
-              placeholder="Enter image URL (/lovable-uploads/ only)"
+              placeholder="Enter image URL (/images/ only)"
               value={newImageUrl}
               onChange={(e) => setNewImageUrl(e.target.value)}
             />
@@ -99,3 +99,4 @@ const GalleryImageUpload = ({ galleryImages, onAddImage }: GalleryImageUploadPro
 };
 
 export default GalleryImageUpload;
+

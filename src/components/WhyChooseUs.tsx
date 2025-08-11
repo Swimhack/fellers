@@ -22,7 +22,7 @@ const WhyChooseUs = () => {
           <div className="animate-fade-in-up order-2 lg:order-1">
             <div className="rounded-lg overflow-hidden shadow-2xl">
               <DynamicGalleryImage
-                fallbackSrc="/lovable-uploads/6172ff99-ae73-49cd-85d9-181361c7c1ef.png"
+                fallbackSrc="/images/6172ff99-ae73-49cd-85d9-181361c7c1ef.png"
                 alt="Fellers Resources heavy-duty towing equipment and recovery cranes in operation"
                 className="w-full h-full object-cover"
                 loading="lazy"

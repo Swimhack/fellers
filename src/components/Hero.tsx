@@ -16,7 +16,7 @@ interface GalleryImage {
 }
 
 // Fallback image in case no admin images are available
-const fallbackImage = "/lovable-uploads/046e5f95-7772-4564-888a-5026ab430faf.png";
+const fallbackImage = "/images/046e5f95-7772-4564-888a-5026ab430faf.png";
 
 const Hero = () => {
   const carouselRef = useRef(null);
