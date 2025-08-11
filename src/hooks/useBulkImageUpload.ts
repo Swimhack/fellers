@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { StorageManager } from '@/utils/storageManager';
 import { ImageProcessor } from '@/utils/imageProcessor';
 import { isValidGalleryImage } from '@/utils/galleryUtils';
+import { uploadImageBlob } from '@/utils/supabaseGallery';
 
 export interface UploadedImage {
   id: number;
@@ -38,38 +39,15 @@ export const useBulkImageUpload = () => {
 
   const handleFileChange = (newFiles: File[]) => {
     console.log('Selected', newFiles.length, 'new files');
-    
-    // Check storage before allowing more files
-    const storageStats = StorageManager.getStorageStats();
-    if (storageStats.usagePercentage > 90) {
-      toast.error("Storage nearly full", {
-        description: `Current usage: ${storageStats.usagePercentage}%. Please clear some images first.`
-      });
-      return;
-    }
-    
-    // Filter only image files
     const imageFiles = newFiles.filter(file => file.type.startsWith('image/'));
-    console.log('Valid image files:', imageFiles.length);
-    
     if (imageFiles.length !== newFiles.length) {
       toast.error(`${newFiles.length - imageFiles.length} non-image files were ignored`);
     }
-    
-    // Check file sizes
-    const oversizedFiles = imageFiles.filter(file => file.size > 10 * 1024 * 1024); // 10MB limit
+    const oversizedFiles = imageFiles.filter(file => file.size > 10 * 1024 * 1024);
     if (oversizedFiles.length > 0) {
       toast.warning(`${oversizedFiles.length} files are very large and will be compressed significantly`);
     }
-    
     setSelectedFiles(prev => [...prev, ...imageFiles]);
-    
-    // Show storage usage info
-    if (imageFiles.length > 5) {
-      toast.info("Large batch detected", {
-        description: "Images will be compressed to optimize storage usage."
-      });
-    }
   };
 
   const handleRemoveFile = (index: number) => {
@@ -96,6 +74,11 @@ export const useBulkImageUpload = () => {
     document.body.removeChild(link);
   };
 
+  const dataUrlToBlob = async (dataUrl: string): Promise<Blob> => {
+    const res = await fetch(dataUrl);
+    return await res.blob();
+  };
+
   const handleBulkUpload = async () => {
     if (selectedFiles.length === 0) {
       toast.error("No images selected", {
@@ -109,13 +92,6 @@ export const useBulkImageUpload = () => {
     setUploadProgress(0);
 
     try {
-      const storageStats = StorageManager.getStorageStats();
-      const availableSpace = storageStats.available;
-      const estimatedSpacePerImage = availableSpace / selectedFiles.length;
-      
-      console.log('Available space:', availableSpace, 'bytes');
-      console.log('Estimated space per image:', estimatedSpacePerImage, 'bytes');
-
       toast.info("Processing images...", {
         description: "Compressing and uploading images to gallery"
       });
@@ -127,7 +103,7 @@ export const useBulkImageUpload = () => {
           maxHeight: 1080,
           quality: 0.8,
           format: 'image/jpeg',
-          targetSize: Math.min(estimatedSpacePerImage * 0.8, 500 * 1024) // Max 500KB per image
+          targetSize: 500 * 1024
         },
         (processed, total) => {
           setUploadProgress(Math.round((processed / total) * 100));
@@ -139,49 +115,42 @@ export const useBulkImageUpload = () => {
       let successful = 0;
       let failed = 0;
 
-      for (const processed of processedImages) {
+      for (let i = 0; i < processedImages.length; i++) {
+        const processed = processedImages[i];
+        const originalFile = selectedFiles[i];
         try {
-          const fileName = selectedFiles[processedImages.indexOf(processed)]?.name || 'Unknown';
-          const altText = fileName.replace(/\.[^/.]+$/, ''); // Remove extension
-          
-          StorageManager.addImage(processed.dataUrl, altText);
+          const blob = await dataUrlToBlob(processed.dataUrl);
+          const { publicUrl } = await uploadImageBlob(blob, originalFile?.name || `image_${i + 1}.jpg`);
+
+          // Save public URL to local gallery as well for caching/fallback
+          const altText = (originalFile?.name || `Uploaded image ${i + 1}`).replace(/\.[^/.]+$/, '');
+          StorageManager.addImage(publicUrl, altText, { source: 'admin', fileName: originalFile?.name });
           successful++;
         } catch (error) {
-          console.error('Error saving image:', error);
+          console.error('Error uploading/saving image:', error);
           failed++;
-          
-          if (error instanceof Error && error.message.includes('quota')) {
-            toast.error("Storage quota exceeded", {
-              description: "Please clear some existing images and try uploading fewer images at once."
-            });
-            break;
-          }
         }
       }
 
       if (successful > 0) {
-        const avgCompression = Math.round(
-          processedImages.reduce((sum, img) => sum + img.compressionRatio, 0) / processedImages.length
-        );
-        
         toast.success(`Successfully uploaded ${successful} images`, {
-          description: `Average compression: ${avgCompression}%. Images are now visible in the gallery.`
+          description: `Images are now visible in the gallery.`
         });
-        
         setSelectedFiles([]);
         loadSavedImages();
+        window.dispatchEvent(new CustomEvent('galleryImagesUpdated'));
       }
-      
+
       if (failed > 0) {
         toast.error(`${failed} images failed to upload`, {
-          description: "Please try uploading the failed images again or clear some storage space."
+          description: "Please try again."
         });
       }
-      
+
     } catch (error) {
       console.error("Error during bulk upload:", error);
       toast.error("Upload failed", {
-        description: error instanceof Error ? error.message : "Please try again with fewer images."
+        description: error instanceof Error ? error.message : "Please try again."
       });
     } finally {
       setIsUploading(false);
@@ -189,7 +158,6 @@ export const useBulkImageUpload = () => {
     }
   };
 
-  // Convert files to preview objects for display
   const uploadedImages = selectedFiles.map((file, index) => ({
     id: Date.now() + index,
     preview: URL.createObjectURL(file),

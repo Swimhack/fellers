@@ -11,13 +11,13 @@ import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { StorageManager } from '@/utils/storageManager';
 import { isValidGalleryImage } from '@/utils/galleryUtils';
+import { listGalleryImages } from '@/utils/supabaseGallery';
 
 const Gallery = () => {
   const isMobile = useIsMobile();
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Shuffle array function for randomizing image order
   const shuffleArray = (array: any[]) => {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -27,44 +27,49 @@ const Gallery = () => {
     return shuffled;
   };
 
-  const loadGalleryImages = () => {
-    console.log('Loading gallery images...');
-    const images = StorageManager.getGalleryImages();
-    console.log('Loaded images:', images.length);
-    
-    if (images.length > 0) {
+  const loadFromSupabase = async (): Promise<string[]> => {
+    try {
+      const files = await listGalleryImages(200);
+      const urls = files.map((f) => f.publicUrl).filter((u) => !!u);
+      return urls;
+    } catch (e) {
+      console.warn('Failed to load from Supabase Storage. Falling back to local gallery.', e);
+      return [];
+    }
+  };
+
+  const loadGalleryImages = async () => {
+    setIsLoading(true);
+    let urls: string[] = await loadFromSupabase();
+
+    if (urls.length === 0) {
+      const images = StorageManager.getGalleryImages();
       const validImages = images.filter(img => isValidGalleryImage(img.url));
-      // Randomize the order instead of sorting by order
-      const randomizedImages = shuffleArray(validImages);
-      const imageUrls = randomizedImages.map(img => img.url);
-      setGalleryImages(imageUrls);
-      console.log('Gallery images set (randomized):', imageUrls.length);
+      urls = validImages.map(img => img.url);
+    }
+
+    if (urls.length > 0) {
+      const randomized = shuffleArray(urls);
+      setGalleryImages(randomized);
     } else {
       setGalleryImages([]);
-      console.log('No valid images found');
     }
-    
+
     setIsLoading(false);
   };
 
   useEffect(() => {
     loadGalleryImages();
-
-    // Listen for storage changes
     const handleGalleryUpdate = () => {
-      console.log('Gallery images updated via event');
       loadGalleryImages();
     };
-
     window.addEventListener('galleryImagesUpdated', handleGalleryUpdate);
-
     return () => {
       window.removeEventListener('galleryImagesUpdated', handleGalleryUpdate);
     };
   }, []);
 
   useEffect(() => {
-    // Preload gallery images
     galleryImages.forEach(src => {
       const img = new Image();
       img.src = src;
@@ -75,7 +80,6 @@ const Gallery = () => {
     <section id="gallery" className="section-padding gradient-bg">
       <div className="container mx-auto">
         <h2 className="text-2xl sm:text-3xl md:text-4xl text-center mb-8 md:mb-12 text-fellers-white">OUR CUSTOMERS</h2>
-        
         {isLoading ? (
           <div className="text-center text-fellers-white">
             <p>Loading gallery...</p>
@@ -117,8 +121,6 @@ const Gallery = () => {
               <CarouselPrevious className="flex -left-4 md:-left-6 h-8 w-8 md:h-10 md:w-10" />
               <CarouselNext className="flex -right-4 md:-right-6 h-8 w-8 md:h-10 md:w-10" />
             </Carousel>
-            
-            {/* Mobile swipe indicator */}
             <div className="md:hidden text-center mt-4">
               <p className="text-sm text-fellers-white/70">← Swipe to see more →</p>
             </div>
