@@ -1,0 +1,25 @@
+app = 'fellersresources'
+primary_region = 'ord'
+
+[build]
+
+[env]
+  VITE_SUPABASE_URL = "https://icfwkxvhdnqncyhyncmj.supabase.co"
+  VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljZndreHZoZG5xbmN5aHluY21qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMwOTk3NzEsImV4cCI6MjA1ODY3NTc3MX0.2_0pduHQDFktd7f6fOBCHM91WOIDr1U7npqG0MkFgJA"
+
+[http_service]
+  internal_port = 80
+  force_https = true
+  auto_stop_machines = "suspend"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[vm]]
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1
+
+[[statics]]
+  guest_path = "/usr/share/nginx/html"
+  url_prefix = "/"

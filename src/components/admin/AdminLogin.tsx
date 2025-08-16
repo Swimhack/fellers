@@ -22,9 +22,20 @@ const AdminLogin = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Add debugging info (remove in production)
-    console.log("Login attempt:", { username, password: "***" });
-    console.log("Expected credentials:", { username: DEFAULT_USERNAME, password: "***" });
+    // Clear any previous authentication
+    localStorage.removeItem("adminAuthenticated");
+    localStorage.removeItem("adminLoginTime");
+
+    // Add detailed debugging info
+    console.log("=== LOGIN ATTEMPT DEBUG ===");
+    console.log("Entered username:", `"${username}"`);
+    console.log("Entered password:", `"${password}"`);
+    console.log("Expected username:", `"${DEFAULT_USERNAME}"`);
+    console.log("Expected password:", `"${DEFAULT_PASSWORD}"`);
+    console.log("Username length:", username.length);
+    console.log("Password length:", password.length);
+    console.log("Expected username length:", DEFAULT_USERNAME.length);
+    console.log("Expected password length:", DEFAULT_PASSWORD.length);
 
     // Simulate API call delay
     setTimeout(() => {
@@ -32,12 +43,19 @@ const AdminLogin = () => {
       const trimmedUsername = username.trim();
       const trimmedPassword = password.trim();
       
+      console.log("After trimming:");
+      console.log("Trimmed username:", `"${trimmedUsername}"`);
+      console.log("Trimmed password:", `"${trimmedPassword}"`);
+      console.log("Username match:", trimmedUsername === DEFAULT_USERNAME);
+      console.log("Password match:", trimmedPassword === DEFAULT_PASSWORD);
+      
       if (trimmedUsername === DEFAULT_USERNAME && trimmedPassword === DEFAULT_PASSWORD) {
         // Set admin authentication in localStorage
         localStorage.setItem("adminAuthenticated", "true");
         localStorage.setItem("adminLoginTime", new Date().toISOString());
         
-        console.log("Login successful for user:", trimmedUsername);
+        console.log("✅ LOGIN SUCCESSFUL for user:", trimmedUsername);
+        console.log("Auth stored in localStorage:", localStorage.getItem("adminAuthenticated"));
         
         toast({
           title: "Login successful",
@@ -46,16 +64,26 @@ const AdminLogin = () => {
         
         navigate("/admin/dashboard");
       } else {
-        console.log("Login failed - credential mismatch");
+        console.log("❌ LOGIN FAILED - credential mismatch");
+        console.log("Username comparison:", {
+          entered: trimmedUsername,
+          expected: DEFAULT_USERNAME,
+          match: trimmedUsername === DEFAULT_USERNAME
+        });
+        console.log("Password comparison:", {
+          entered: trimmedPassword,
+          expected: DEFAULT_PASSWORD,
+          match: trimmedPassword === DEFAULT_PASSWORD
+        });
         
         toast({
           title: "Login failed",
-          description: `Invalid username or password. Use: ${DEFAULT_USERNAME} / ${DEFAULT_PASSWORD}`,
+          description: `Invalid username or password. Expected: "${DEFAULT_USERNAME}" / "${DEFAULT_PASSWORD}"`,
           variant: "destructive",
         });
       }
       setIsLoading(false);
-    }, 800);
+    }, 500); // Reduced delay for faster testing
   };
 
   return (
@@ -72,6 +100,10 @@ const AdminLogin = () => {
               Username: <code className="bg-blue-100 px-1 rounded">admin</code><br />
               Password: <code className="bg-blue-100 px-1 rounded">fellers123</code>
             </p>
+            <div className="mt-2 text-xs text-blue-600">
+              <p>Debug info (check browser console for detailed logs)</p>
+              <p>Current values: "{username}" / "{password}"</p>
+            </div>
           </div>
           
           <form onSubmit={handleLogin} className="space-y-4">
