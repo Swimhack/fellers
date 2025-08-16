@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import FellersLogo from '@/components/FellersLogo';
 
-const DEFAULT_USERNAME = import.meta.env.VITE_ADMIN_USERNAME || "admin";
-const DEFAULT_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || "FellersAdmin2024!";
+// Simple default credentials for admin access
+const DEFAULT_USERNAME = "admin";
+const DEFAULT_PASSWORD = "fellers123";
 
 const AdminLogin = () => {
   const [username, setUsername] = useState("");
@@ -21,11 +22,22 @@ const AdminLogin = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    // Add debugging info (remove in production)
+    console.log("Login attempt:", { username, password: "***" });
+    console.log("Expected credentials:", { username: DEFAULT_USERNAME, password: "***" });
+
     // Simulate API call delay
     setTimeout(() => {
-      if (username === DEFAULT_USERNAME && password === DEFAULT_PASSWORD) {
+      // Trim whitespace and check credentials
+      const trimmedUsername = username.trim();
+      const trimmedPassword = password.trim();
+      
+      if (trimmedUsername === DEFAULT_USERNAME && trimmedPassword === DEFAULT_PASSWORD) {
         // Set admin authentication in localStorage
         localStorage.setItem("adminAuthenticated", "true");
+        localStorage.setItem("adminLoginTime", new Date().toISOString());
+        
+        console.log("Login successful for user:", trimmedUsername);
         
         toast({
           title: "Login successful",
@@ -34,9 +46,11 @@ const AdminLogin = () => {
         
         navigate("/admin/dashboard");
       } else {
+        console.log("Login failed - credential mismatch");
+        
         toast({
           title: "Login failed",
-          description: "Invalid username or password",
+          description: `Invalid username or password. Use: ${DEFAULT_USERNAME} / ${DEFAULT_PASSWORD}`,
           variant: "destructive",
         });
       }
@@ -52,6 +66,14 @@ const AdminLogin = () => {
           <CardTitle className="text-2xl font-bold text-center mt-4">Admin Login</CardTitle>
         </CardHeader>
         <CardContent>
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-sm text-blue-800">
+              <strong>Admin Credentials:</strong><br />
+              Username: <code className="bg-blue-100 px-1 rounded">admin</code><br />
+              Password: <code className="bg-blue-100 px-1 rounded">fellers123</code>
+            </p>
+          </div>
+          
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <label htmlFor="username" className="text-sm font-medium">Username</label>
