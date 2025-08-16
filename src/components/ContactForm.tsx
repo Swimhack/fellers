@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from "sonner";
 import { Textarea } from '@/components/ui/textarea';
+import { supabase } from '@/integrations/supabase/client';
+import { sendContactEmail } from '@/utils/emailService';
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({
@@ -27,57 +29,128 @@ const ContactForm = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Always save to localStorage
-    const submission = {
-      ...formData,
-      timestamp: new Date().toISOString(),
-      id: Date.now().toString()
+    // Prepare submission data
+    const submissionData = {
+      name: formData.name,
+      phone: formData.phone,
+      email: formData.email || null,
+      location: formData.location,
+      details: formData.details,
+      status: 'new' as const
     };
     
     try {
-      // Save to localStorage
-      const existingSubmissions = JSON.parse(localStorage.getItem('contact_submissions') || '[]');
-      existingSubmissions.push(submission);
-      localStorage.setItem('contact_submissions', JSON.stringify(existingSubmissions));
+      let dbSaved = false;
+      let emailSent = false;
       
-      console.log('Contact saved to localStorage:', submission);
-      
-      // Try to send email via FormSubmit.co (no API key needed)
-      try {
-        const response = await fetch('https://formsubmit.co/ajax/dispatch@fellersresources.com', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({
-            name: formData.name,
-            phone: formData.phone,
-            email: formData.email || 'noreply@fellersresources.com',
-            location: formData.location,
-            message: formData.details,
-            _subject: `New Service Request from ${formData.name}`,
-            _template: 'table'
-          })
-        });
-        
-        if (response.ok) {
-          console.log('Email sent successfully via FormSubmit');
+      // 1. Save to Supabase database
+      if (supabase) {
+        try {
+          const { data, error } = await supabase
+            .from('contacts')
+            .insert([submissionData])
+            .select()
+            .single();
+          
+          if (error) {
+            console.error('Database save error:', error);
+            throw error;
+          }
+          
+          console.log('✅ Contact saved to database:', data);
+          dbSaved = true;
+        } catch (dbError) {
+          console.error('❌ Database save failed:', dbError);
+          // Continue to fallback storage
         }
-      } catch (emailError) {
-        console.log('Email service unavailable, but contact saved locally');
       }
       
-      // Always show success
+      // 2. Fallback to localStorage if database fails
+      if (!dbSaved) {
+        try {
+          const localSubmission = {
+            ...submissionData,
+            timestamp: new Date().toISOString(),
+            id: Date.now().toString()
+          };
+          
+          const existingSubmissions = JSON.parse(localStorage.getItem('contact_submissions') || '[]');
+          existingSubmissions.push(localSubmission);
+          localStorage.setItem('contact_submissions', JSON.stringify(existingSubmissions));
+          
+          console.log('✅ Contact saved to localStorage:', localSubmission);
+        } catch (localError) {
+          console.error('❌ LocalStorage save failed:', localError);
+        }
+      }
+      
+      // 3. Send email notification
+      try {
+        const emailResult = await sendContactEmail({
+          name: formData.name,
+          phone: formData.phone,
+          email: formData.email || 'No email provided',
+          location: formData.location,
+          details: formData.details
+        });
+        
+        if (emailResult.success) {
+          console.log('✅ Email sent successfully via Resend API');
+          emailSent = true;
+        } else {
+          throw new Error('Email service failed');
+        }
+      } catch (emailError) {
+        console.error('❌ Email send failed, trying fallback:', emailError);
+        
+        // Fallback to FormSubmit.co
+        try {
+          const response = await fetch('https://formsubmit.co/ajax/dispatch@fellersresources.com', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+              name: formData.name,
+              phone: formData.phone,
+              email: formData.email || 'noreply@fellersresources.com',
+              location: formData.location,
+              message: formData.details,
+              _subject: `New Service Request from ${formData.name}`,
+              _template: 'table'
+            })
+          });
+          
+          if (response.ok) {
+            console.log('✅ Email sent successfully via FormSubmit fallback');
+            emailSent = true;
+          }
+        } catch (fallbackError) {
+          console.error('❌ Fallback email also failed:', fallbackError);
+        }
+      }
+      
+      // 4. Show success message
       setIsSubmitting(false);
       setSubmitted(true);
       
-      toast.success("We're rolling—expect a call in minutes!", {
-        description: "Thank you for your service request!",
+      const successMessage = dbSaved && emailSent 
+        ? "We're rolling—expect a call in minutes!"
+        : dbSaved 
+        ? "Request received and saved!"
+        : "Request received!";
+      
+      const description = emailSent 
+        ? "Thank you for your service request!"
+        : `We'll contact you at ${formData.phone}`;
+      
+      toast.success(successMessage, {
+        description: description,
         duration: 5000
       });
       
-      // Reset form
+      // 5. Reset form
       setFormData({
         name: '',
         phone: '',
@@ -90,21 +163,12 @@ const ContactForm = () => {
       setTimeout(() => setSubmitted(false), 5000);
       
     } catch (error) {
-      console.error('Form error:', error);
-      // Still show success since we saved locally
+      console.error('❌ Form submission error:', error);
       setIsSubmitting(false);
-      toast.success("Request received!", {
-        description: "We'll contact you at " + formData.phone,
-        duration: 5000
-      });
       
-      // Reset form
-      setFormData({
-        name: '',
-        phone: '',
-        email: '',
-        location: '',
-        details: ''
+      toast.error("Request failed to submit", {
+        description: "Please try again or call us directly at 936-662-9930",
+        duration: 5000
       });
     }
   };
