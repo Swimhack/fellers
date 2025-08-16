@@ -1,4 +1,6 @@
-// Alternative email service using direct API calls
+import { supabase } from '@/integrations/supabase/client';
+
+// Email service using Supabase Edge Function to avoid CORS issues
 export const sendContactEmail = async (contactData: {
   name: string;
   phone: string;
@@ -7,49 +9,34 @@ export const sendContactEmail = async (contactData: {
   details: string;
 }) => {
   try {
-    // Try to send via Resend API directly (if available)
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${import.meta.env.VITE_RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'dispatch@fellersresources.com',
-        to: ['dispatch@fellersresources.com'],
-        subject: `New Service Request: ${contactData.name}`,
-        html: `
-          <h2>New Service Request</h2>
-          <p><strong>Name:</strong> ${contactData.name}</p>
-          <p><strong>Phone:</strong> <a href="tel:${contactData.phone}">${contactData.phone}</a></p>
-          <p><strong>Email:</strong> ${contactData.email !== 'No email provided' ? `<a href="mailto:${contactData.email}">${contactData.email}</a>` : 'No email provided'}</p>
-          <p><strong>Location:</strong> ${contactData.location}</p>
-          <p><strong>Details:</strong></p>
-          <p>${contactData.details}</p>
-          <br>
-          <p><em>Please contact this customer as soon as possible.</em></p>
-        `,
-        text: `
-New service request received:
-
-Name: ${contactData.name}
-Phone: ${contactData.phone}
-Email: ${contactData.email}
-Location: ${contactData.location}
-Details: ${contactData.details}
-
-Please contact this customer as soon as possible.
-        `
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`Email API error: ${response.status}`);
+    if (!supabase) {
+      throw new Error('Supabase client not available');
     }
 
-    const result = await response.json();
-    console.log('Email sent successfully:', result);
-    return { success: true, data: result };
+    console.log('Sending email via Supabase Edge Function...');
+    
+    // Use Supabase Edge Function to send email
+    const { data, error } = await supabase.functions.invoke('send-contact-email', {
+      body: {
+        name: contactData.name,
+        phone: contactData.phone,
+        email: contactData.email,
+        location: contactData.location,
+        details: contactData.details
+      }
+    });
+
+    if (error) {
+      console.error('Supabase function error:', error);
+      throw error;
+    }
+
+    if (data?.success) {
+      console.log('Email sent successfully via Supabase Edge Function:', data);
+      return { success: true, data };
+    } else {
+      throw new Error('Email function returned failure');
+    }
   } catch (error) {
     console.error('Email service error:', error);
     return { success: false, error };

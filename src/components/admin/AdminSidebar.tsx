@@ -54,7 +54,7 @@ const AdminSidebar = () => {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Contact Submissions (Database)">
+            <SidebarMenuButton asChild tooltip="Contact Submissions">
               <NavLink 
                 to="/admin/contacts" 
                 className={({ isActive }) => 
@@ -63,23 +63,8 @@ const AdminSidebar = () => {
                     : "text-gray-200 hover:bg-gray-700 hover:text-fellers-green"
                 }
               >
-                <Database className="mr-2 text-fellers-green" />
-                <span>Contacts (Database)</span>
-              </NavLink>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Contact Submissions (Local)">
-              <NavLink 
-                to="/admin/contacts-local" 
-                className={({ isActive }) => 
-                  isActive 
-                    ? "bg-fellers-brightPurple text-white" 
-                    : "text-gray-200 hover:bg-gray-700 hover:text-fellers-green"
-                }
-              >
                 <Users className="mr-2 text-fellers-green" />
-                <span>Contacts (Local)</span>
+                <span>Contact Submissions</span>
               </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>

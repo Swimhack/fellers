@@ -29,63 +29,55 @@ const ContactForm = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Prepare submission data
+    // Prepare submission data for Supabase
     const submissionData = {
-      name: formData.name,
-      phone: formData.phone,
-      email: formData.email || null,
-      location: formData.location,
-      details: formData.details,
+      name: formData.name.trim(),
+      phone: formData.phone.trim(),
+      email: formData.email?.trim() || null,
+      location: formData.location.trim(),
+      details: formData.details.trim(),
       status: 'new' as const
     };
+    
+    console.log('=== CONTACT FORM SUBMISSION ===');
+    console.log('Submitting data:', submissionData);
+    console.log('Supabase client available:', !!supabase);
     
     try {
       let dbSaved = false;
       let emailSent = false;
+      let submissionId = null;
       
-      // 1. Save to Supabase database
-      if (supabase) {
-        try {
-          const { data, error } = await supabase
-            .from('contacts')
-            .insert([submissionData])
-            .select()
-            .single();
-          
-          if (error) {
-            console.error('Database save error:', error);
-            throw error;
-          }
-          
-          console.log('✅ Contact saved to database:', data);
-          dbSaved = true;
-        } catch (dbError) {
-          console.error('❌ Database save failed:', dbError);
-          // Continue to fallback storage
-        }
+      // 1. ONLY save to Supabase database - no fallbacks
+      if (!supabase) {
+        throw new Error('Database connection not available');
       }
       
-      // 2. Fallback to localStorage if database fails
-      if (!dbSaved) {
-        try {
-          const localSubmission = {
-            ...submissionData,
-            timestamp: new Date().toISOString(),
-            id: Date.now().toString()
-          };
-          
-          const existingSubmissions = JSON.parse(localStorage.getItem('contact_submissions') || '[]');
-          existingSubmissions.push(localSubmission);
-          localStorage.setItem('contact_submissions', JSON.stringify(existingSubmissions));
-          
-          console.log('✅ Contact saved to localStorage:', localSubmission);
-        } catch (localError) {
-          console.error('❌ LocalStorage save failed:', localError);
-        }
+      console.log('Attempting to save to database...');
+      const { data, error } = await supabase
+        .from('contacts')
+        .insert([submissionData])
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('❌ Database save error:', error);
+        console.error('Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw new Error(`Database save failed: ${error.message}`);
       }
       
-      // 3. Send email notification
+      console.log('✅ Contact saved to database successfully:', data);
+      dbSaved = true;
+      submissionId = data.id;
+      
+      // 2. Send email notification
       try {
+        console.log('Attempting to send email notification...');
         const emailResult = await sendContactEmail({
           name: formData.name,
           phone: formData.phone,
@@ -98,10 +90,10 @@ const ContactForm = () => {
           console.log('✅ Email sent successfully via Resend API');
           emailSent = true;
         } else {
-          throw new Error('Email service failed');
+          throw new Error('Primary email service failed');
         }
       } catch (emailError) {
-        console.error('❌ Email send failed, trying fallback:', emailError);
+        console.error('❌ Primary email failed, trying fallback:', emailError);
         
         // Fallback to FormSubmit.co
         try {
@@ -117,7 +109,7 @@ const ContactForm = () => {
               email: formData.email || 'noreply@fellersresources.com',
               location: formData.location,
               message: formData.details,
-              _subject: `New Service Request from ${formData.name}`,
+              _subject: `New Service Request from ${formData.name} (ID: ${submissionId})`,
               _template: 'table'
             })
           });
@@ -125,32 +117,32 @@ const ContactForm = () => {
           if (response.ok) {
             console.log('✅ Email sent successfully via FormSubmit fallback');
             emailSent = true;
+          } else {
+            console.error('❌ FormSubmit fallback also failed');
           }
         } catch (fallbackError) {
-          console.error('❌ Fallback email also failed:', fallbackError);
+          console.error('❌ All email services failed:', fallbackError);
         }
       }
       
-      // 4. Show success message
+      // 3. Show success message
       setIsSubmitting(false);
       setSubmitted(true);
       
-      const successMessage = dbSaved && emailSent 
+      const successMessage = emailSent 
         ? "We're rolling—expect a call in minutes!"
-        : dbSaved 
-        ? "Request received and saved!"
-        : "Request received!";
+        : "Request received and saved!";
       
       const description = emailSent 
         ? "Thank you for your service request!"
-        : `We'll contact you at ${formData.phone}`;
+        : `Your request is saved. We'll contact you at ${formData.phone}`;
       
       toast.success(successMessage, {
         description: description,
         duration: 5000
       });
       
-      // 5. Reset form
+      // 4. Reset form
       setFormData({
         name: '',
         phone: '',
@@ -163,12 +155,14 @@ const ContactForm = () => {
       setTimeout(() => setSubmitted(false), 5000);
       
     } catch (error) {
-      console.error('❌ Form submission error:', error);
+      console.error('❌ Critical form submission error:', error);
       setIsSubmitting(false);
       
-      toast.error("Request failed to submit", {
-        description: "Please try again or call us directly at 936-662-9930",
-        duration: 5000
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
+      toast.error("Unable to submit request", {
+        description: `${errorMessage}. Please call us directly at 936-662-9930`,
+        duration: 8000
       });
     }
   };
