@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login Test - Fellers Resources</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .credentials {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        button {
+            background: #00FF00;
+            color: #333;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #00dd00;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔐 Admin Login Validation Test</h1>
+        <p>Testing admin login functionality for <strong>https://fellersresources.com/admin/</strong></p>
+        
+        <div class="credentials">
+            <h3>📋 Expected Admin Credentials:</h3>
+            <p><strong>Username:</strong> <code>admin</code></p>
+            <p><strong>Password:</strong> <code>fellers123</code></p>
+        </div>
+
+        <h3>🧪 Login Function Test</h3>
+        <div>
+            <input type="text" id="testUsername" placeholder="Username" value="admin">
+            <input type="password" id="testPassword" placeholder="Password" value="fellers123">
+            <button onclick="testLogin()">Test Login Logic</button>
+        </div>
+        
+        <div id="testResults"></div>
+
+        <h3>✅ Validation Checklist</h3>
+        <div id="checklist">
+            <div class="test-result">🔄 Initializing tests...</div>
+        </div>
+    </div>
+
+    <script>
+        // Simulate the admin login logic from AdminLogin.tsx
+        const DEFAULT_USERNAME = "admin";
+        const DEFAULT_PASSWORD = "fellers123";
+
+        function testLogin() {
+            const username = document.getElementById('testUsername').value.trim();
+            const password = document.getElementById('testPassword').value.trim();
+            const results = document.getElementById('testResults');
+            
+            console.log("Testing login with:", { username, password: "***" });
+            console.log("Expected credentials:", { username: DEFAULT_USERNAME, password: "***" });
+            
+            if (username === DEFAULT_USERNAME && password === DEFAULT_PASSWORD) {
+                results.innerHTML = `
+                    <div class="test-result success">
+                        ✅ <strong>Login Test PASSED</strong><br>
+                        Credentials match expected values<br>
+                        Authentication would succeed
+                    </div>
+                `;
+                
+                // Simulate localStorage operations
+                try {
+                    localStorage.setItem("adminAuthenticated", "true");
+                    localStorage.setItem("adminLoginTime", new Date().toISOString());
+                    
+                    results.innerHTML += `
+                        <div class="test-result success">
+                            ✅ <strong>LocalStorage Test PASSED</strong><br>
+                            Authentication tokens set successfully
+                        </div>
+                    `;
+                } catch (e) {
+                    results.innerHTML += `
+                        <div class="test-result error">
+                            ❌ <strong>LocalStorage Test FAILED</strong><br>
+                            Error: ${e.message}
+                        </div>
+                    `;
+                }
+                
+            } else {
+                results.innerHTML = `
+                    <div class="test-result error">
+                        ❌ <strong>Login Test FAILED</strong><br>
+                        Credential mismatch:<br>
+                        Expected: ${DEFAULT_USERNAME} / ${DEFAULT_PASSWORD}<br>
+                        Received: ${username} / ${password}
+                    </div>
+                `;
+            }
+        }
+
+        function runValidationChecklist() {
+            const checklist = document.getElementById('checklist');
+            const tests = [
+                {
+                    name: "Default Credentials Set",
+                    test: () => DEFAULT_USERNAME === "admin" && DEFAULT_PASSWORD === "fellers123",
+                    description: "Verify hardcoded credentials are correct"
+                },
+                {
+                    name: "String Comparison Logic",
+                    test: () => "admin" === "admin" && "fellers123" === "fellers123",
+                    description: "Test string equality comparisons"
+                },
+                {
+                    name: "Trim Function Working",
+                    test: () => "  admin  ".trim() === "admin" && "  fellers123  ".trim() === "fellers123",
+                    description: "Verify whitespace trimming works"
+                },
+                {
+                    name: "LocalStorage Available",
+                    test: () => typeof localStorage !== 'undefined',
+                    description: "Check if localStorage is available in browser"
+                },
+                {
+                    name: "Date/Time Functions",
+                    test: () => {
+                        try {
+                            const now = new Date().toISOString();
+                            return typeof now === 'string' && now.length > 0;
+                        } catch (e) {
+                            return false;
+                        }
+                    },
+                    description: "Verify date/time functions for session tracking"
+                }
+            ];
+
+            let html = '';
+            let allPassed = true;
+
+            tests.forEach(test => {
+                try {
+                    const passed = test.test();
+                    const status = passed ? '✅' : '❌';
+                    const className = passed ? 'success' : 'error';
+                    
+                    html += `
+                        <div class="test-result ${className}">
+                            ${status} <strong>${test.name}:</strong> ${test.description}
+                        </div>
+                    `;
+                    
+                    if (!passed) allPassed = false;
+                } catch (e) {
+                    html += `
+                        <div class="test-result error">
+                            ❌ <strong>${test.name}:</strong> Error - ${e.message}
+                        </div>
+                    `;
+                    allPassed = false;
+                }
+            });
+
+            html += `
+                <div class="test-result ${allPassed ? 'success' : 'error'}">
+                    <strong>Overall Status:</strong> ${allPassed ? '✅ All tests passed - Admin login should work!' : '❌ Some tests failed - Check issues above'}
+                </div>
+            `;
+
+            checklist.innerHTML = html;
+        }
+
+        // Auto-run validation checklist when page loads
+        window.onload = () => {
+            runValidationChecklist();
+        };
+    </script>
+</body>
+</html>

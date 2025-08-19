@@ -1,0 +1,16 @@
+# Netlify SPA Redirects for React Router
+# All routes should be handled by the React app
+
+# API redirects (Supabase is handled via environment variables)
+# /api/* https://your-project.supabase.co/rest/v1/:splat 200
+
+# Admin routes - ensure these work with React Router
+/admin/* /index.html 200
+/admin /index.html 200
+
+# Gallery routes
+/gallery /index.html 200
+/gallery/* /index.html 200
+
+# Root and all other routes - SPA catch-all
+/* /index.html 200

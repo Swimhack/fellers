@@ -1,0 +1,5 @@
+[33md89d5b5[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Configure Netlify automatic deployment
+[33m7c71401[m Add comprehensive admin login validation and testing
+[33m36822d0[m Fix admin login functionality
+[33m6f16df7[m chore: remove Lovable references; move assets to /images; update meta and tooling
+[33mb919307[m FINAL FIX: Replace ContactForm with bulletproof localStorage version

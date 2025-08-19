@@ -1,0 +1,97 @@
+[build]
+  # Build command - uses npm run build which runs vite build
+  command = "npm run build"
+  
+  # Output directory where vite builds the static files
+  publish = "dist"
+  
+  # Node.js version for the build
+  environment = { NODE_VERSION = "18" }
+
+[build.environment]
+  # Environment variables for build (set actual values in Netlify Dashboard)
+  NODE_ENV = "production"
+  # VITE_SUPABASE_URL = "https://ksmehxxzhtjqilrmikxb.supabase.co"
+  # VITE_SUPABASE_ANON_KEY = "your_anon_key_here"
+
+# SPA (Single Page Application) routing support
+# This ensures all routes are handled by React Router
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# Cache static assets
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Cache images
+[[headers]]
+  for = "*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+
+[[headers]]
+  for = "*.jpg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+
+[[headers]]
+  for = "*.jpeg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+
+# Functions configuration for Supabase edge functions
+[functions]
+  # This project uses Supabase edge functions, not Netlify functions
+  # But we keep this for future extensibility
+  directory = "netlify/functions"
+
+# Form handling (if needed for contact forms)
+[build.processing]
+  skip_processing = false
+
+[build.processing.css]
+  bundle = true
+  minify = true
+
+[build.processing.js]
+  bundle = true
+  minify = true
+
+[build.processing.html]
+  pretty_urls = true
+
+# Deploy previews configuration
+[context.deploy-preview]
+  command = "npm run build"
+
+# Branch deploy configuration
+[context.branch-deploy]
+  command = "npm run build"
+
+# Development context
+[context.dev]
+  command = "npm run build:dev"
+
+# Plugin configuration
+[[plugins]]
+  package = "@netlify/plugin-lighthouse"
+  
+  [plugins.inputs.thresholds]
+    performance = 0.8
+    accessibility = 0.9
+    best-practices = 0.8
+    seo = 0.8
