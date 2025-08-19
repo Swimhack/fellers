@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "supabase-postgres": {
+      "command": "enhanced-postgres-mcp-server",
+      "args": [
+        "--database-url",
+        "postgresql://postgres.mzqbheqosfjddmbytkzz:[YOUR_DB_PASSWORD]@aws-0-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+      ],
+      "env": {
+        "DATABASE_URL": "postgresql://postgres.mzqbheqosfjddmbytkzz:[YOUR_DB_PASSWORD]@aws-0-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+      }
+    }
+  }
+}

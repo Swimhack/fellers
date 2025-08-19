@@ -1,0 +1,71 @@
+-- Create contacts table for storing form submissions
+CREATE TABLE IF NOT EXISTS public.contacts (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    name TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    email TEXT,
+    location TEXT NOT NULL,
+    details TEXT NOT NULL,
+    status TEXT DEFAULT 'new' CHECK (status IN ('new', 'contacted', 'completed', 'cancelled')),
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    contacted_at TIMESTAMPTZ,
+    contacted_by TEXT
+);
+
+-- Enable Row Level Security
+ALTER TABLE public.contacts ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist (to avoid conflicts)
+DROP POLICY IF EXISTS "Authenticated users can read contacts" ON public.contacts;
+DROP POLICY IF EXISTS "Anyone can insert contacts" ON public.contacts;
+DROP POLICY IF EXISTS "Service role can insert contacts" ON public.contacts;
+DROP POLICY IF EXISTS "Authenticated users can update contacts" ON public.contacts;
+
+-- Create policy for authenticated users to read contacts
+CREATE POLICY "Authenticated users can read contacts" ON public.contacts
+    FOR SELECT
+    TO authenticated
+    USING (true);
+
+-- Create policy for anonymous users to insert contacts (for contact form submissions)
+CREATE POLICY "Anyone can insert contacts" ON public.contacts
+    FOR INSERT
+    TO anon
+    WITH CHECK (true);
+
+-- Create policy for service role to insert contacts
+CREATE POLICY "Service role can insert contacts" ON public.contacts
+    FOR INSERT
+    TO service_role
+    WITH CHECK (true);
+
+-- Create policy for authenticated users to update contacts
+CREATE POLICY "Authenticated users can update contacts" ON public.contacts
+    FOR UPDATE
+    TO authenticated
+    USING (true)
+    WITH CHECK (true);
+
+-- Create indexes for faster queries
+CREATE INDEX IF NOT EXISTS idx_contacts_created_at ON public.contacts(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_contacts_status ON public.contacts(status);
+
+-- Create a function to update the updated_at timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Drop existing trigger if it exists
+DROP TRIGGER IF EXISTS update_contacts_updated_at ON public.contacts;
+
+-- Create trigger to automatically update updated_at
+CREATE TRIGGER update_contacts_updated_at BEFORE UPDATE
+    ON public.contacts
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
