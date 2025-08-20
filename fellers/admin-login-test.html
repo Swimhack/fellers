@@ -7,213 +7,227 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
+            max-width: 600px;
+            margin: 50px auto;
             padding: 20px;
             background-color: #f5f5f5;
         }
-        .test-container {
+        .test-section {
             background: white;
             padding: 20px;
+            margin: 20px 0;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .credentials {
-            background: #e3f2fd;
-            padding: 15px;
-            border-radius: 5px;
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .result {
             margin: 10px 0;
-        }
-        .test-result {
             padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
+            border-radius: 4px;
         }
         .success {
             background: #d4edda;
             color: #155724;
+            border: 1px solid #c3e6cb;
         }
         .error {
             background: #f8d7da;
             color: #721c24;
+            border: 1px solid #f5c6cb;
         }
-        button {
-            background: #00FF00;
-            color: #333;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 5px;
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
         }
-        button:hover {
-            background: #00dd00;
-        }
-        input {
-            padding: 8px;
-            margin: 5px;
-            border: 1px solid #ddd;
+        .credentials {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
             border-radius: 4px;
-            width: 200px;
+            margin: 20px 0;
         }
     </style>
 </head>
 <body>
-    <div class="test-container">
-        <h1>🔐 Admin Login Validation Test</h1>
-        <p>Testing admin login functionality for <strong>https://fellersresources.com/admin/</strong></p>
-        
-        <div class="credentials">
-            <h3>📋 Expected Admin Credentials:</h3>
-            <p><strong>Username:</strong> <code>admin</code></p>
-            <p><strong>Password:</strong> <code>fellers123</code></p>
-        </div>
+    <h1>🔐 Admin Login Test - Fellers Resources</h1>
+    
+    <div class="credentials">
+        <h3>📋 Test Credentials</h3>
+        <p><strong>Username:</strong> admin</p>
+        <p><strong>Password:</strong> fellers123</p>
+    </div>
 
-        <h3>🧪 Login Function Test</h3>
-        <div>
-            <input type="text" id="testUsername" placeholder="Username" value="admin">
-            <input type="password" id="testPassword" placeholder="Password" value="fellers123">
-            <button onclick="testLogin()">Test Login Logic</button>
-        </div>
+    <div class="test-section">
+        <h3>🧪 Test Admin Authentication</h3>
+        <p>This test simulates the admin login process to verify the authentication logic works correctly.</p>
+        
+        <button class="test-button" onclick="testAdminLogin()">Test Admin Login</button>
+        <button class="test-button" onclick="testInvalidLogin()">Test Invalid Login</button>
+        <button class="test-button" onclick="clearAuth()">Clear Authentication</button>
+        <button class="test-button" onclick="checkAuthStatus()">Check Auth Status</button>
         
         <div id="testResults"></div>
+    </div>
 
-        <h3>✅ Validation Checklist</h3>
-        <div id="checklist">
-            <div class="test-result">🔄 Initializing tests...</div>
-        </div>
+    <div class="test-section">
+        <h3>📊 Authentication Status</h3>
+        <div id="authStatus"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🔍 localStorage Contents</h3>
+        <div id="localStorageContents"></div>
     </div>
 
     <script>
-        // Simulate the admin login logic from AdminLogin.tsx
-        const DEFAULT_USERNAME = "admin";
-        const DEFAULT_PASSWORD = "fellers123";
+        // Simulate the admin login logic from the React component
+        const ADMIN_USERNAME = "admin";
+        const ADMIN_PASSWORD = "fellers123";
 
-        function testLogin() {
-            const username = document.getElementById('testUsername').value.trim();
-            const password = document.getElementById('testPassword').value.trim();
-            const results = document.getElementById('testResults');
+        function testAdminLogin() {
+            const username = ADMIN_USERNAME;
+            const password = ADMIN_PASSWORD;
             
-            console.log("Testing login with:", { username, password: "***" });
-            console.log("Expected credentials:", { username: DEFAULT_USERNAME, password: "***" });
+            console.log("=== TESTING ADMIN LOGIN ===");
+            console.log("Username:", username);
+            console.log("Password:", password);
             
-            if (username === DEFAULT_USERNAME && password === DEFAULT_PASSWORD) {
-                results.innerHTML = `
-                    <div class="test-result success">
-                        ✅ <strong>Login Test PASSED</strong><br>
-                        Credentials match expected values<br>
-                        Authentication would succeed
-                    </div>
-                `;
+            // Clear any previous authentication
+            localStorage.removeItem("adminAuthenticated");
+            localStorage.removeItem("adminLoginTime");
+            localStorage.removeItem("adminUsername");
+            
+            try {
+                const trimmedUsername = username.trim();
+                const trimmedPassword = password.trim();
                 
-                // Simulate localStorage operations
-                try {
+                if (trimmedUsername === ADMIN_USERNAME && trimmedPassword === ADMIN_PASSWORD) {
+                    // Set admin authentication in localStorage
                     localStorage.setItem("adminAuthenticated", "true");
                     localStorage.setItem("adminLoginTime", new Date().toISOString());
+                    localStorage.setItem("adminUsername", trimmedUsername);
                     
-                    results.innerHTML += `
-                        <div class="test-result success">
-                            ✅ <strong>LocalStorage Test PASSED</strong><br>
-                            Authentication tokens set successfully
-                        </div>
-                    `;
-                } catch (e) {
-                    results.innerHTML += `
-                        <div class="test-result error">
-                            ❌ <strong>LocalStorage Test FAILED</strong><br>
-                            Error: ${e.message}
-                        </div>
-                    `;
+                    console.log("✅ ADMIN LOGIN SUCCESSFUL");
+                    showResult("✅ Admin login successful! Authentication set in localStorage.", "success");
+                } else {
+                    console.log("❌ ADMIN LOGIN FAILED - Invalid credentials");
+                    showResult("❌ Admin login failed - Invalid credentials", "error");
                 }
+            } catch (error) {
+                console.error("❌ LOGIN ERROR:", error);
+                showResult("❌ Login error: " + error.message, "error");
+            }
+            
+            updateAuthStatus();
+            updateLocalStorageContents();
+        }
+
+        function testInvalidLogin() {
+            const username = "wronguser";
+            const password = "wrongpass";
+            
+            console.log("=== TESTING INVALID LOGIN ===");
+            console.log("Username:", username);
+            console.log("Password:", password);
+            
+            try {
+                const trimmedUsername = username.trim();
+                const trimmedPassword = password.trim();
                 
-            } else {
-                results.innerHTML = `
-                    <div class="test-result error">
-                        ❌ <strong>Login Test FAILED</strong><br>
-                        Credential mismatch:<br>
-                        Expected: ${DEFAULT_USERNAME} / ${DEFAULT_PASSWORD}<br>
-                        Received: ${username} / ${password}
-                    </div>
-                `;
+                if (trimmedUsername === ADMIN_USERNAME && trimmedPassword === ADMIN_PASSWORD) {
+                    showResult("❌ Invalid login should have failed!", "error");
+                } else {
+                    showResult("✅ Invalid login correctly rejected", "success");
+                }
+            } catch (error) {
+                showResult("❌ Error during invalid login test: " + error.message, "error");
             }
         }
 
-        function runValidationChecklist() {
-            const checklist = document.getElementById('checklist');
-            const tests = [
-                {
-                    name: "Default Credentials Set",
-                    test: () => DEFAULT_USERNAME === "admin" && DEFAULT_PASSWORD === "fellers123",
-                    description: "Verify hardcoded credentials are correct"
-                },
-                {
-                    name: "String Comparison Logic",
-                    test: () => "admin" === "admin" && "fellers123" === "fellers123",
-                    description: "Test string equality comparisons"
-                },
-                {
-                    name: "Trim Function Working",
-                    test: () => "  admin  ".trim() === "admin" && "  fellers123  ".trim() === "fellers123",
-                    description: "Verify whitespace trimming works"
-                },
-                {
-                    name: "LocalStorage Available",
-                    test: () => typeof localStorage !== 'undefined',
-                    description: "Check if localStorage is available in browser"
-                },
-                {
-                    name: "Date/Time Functions",
-                    test: () => {
-                        try {
-                            const now = new Date().toISOString();
-                            return typeof now === 'string' && now.length > 0;
-                        } catch (e) {
-                            return false;
-                        }
-                    },
-                    description: "Verify date/time functions for session tracking"
-                }
-            ];
-
-            let html = '';
-            let allPassed = true;
-
-            tests.forEach(test => {
-                try {
-                    const passed = test.test();
-                    const status = passed ? '✅' : '❌';
-                    const className = passed ? 'success' : 'error';
-                    
-                    html += `
-                        <div class="test-result ${className}">
-                            ${status} <strong>${test.name}:</strong> ${test.description}
-                        </div>
-                    `;
-                    
-                    if (!passed) allPassed = false;
-                } catch (e) {
-                    html += `
-                        <div class="test-result error">
-                            ❌ <strong>${test.name}:</strong> Error - ${e.message}
-                        </div>
-                    `;
-                    allPassed = false;
-                }
-            });
-
-            html += `
-                <div class="test-result ${allPassed ? 'success' : 'error'}">
-                    <strong>Overall Status:</strong> ${allPassed ? '✅ All tests passed - Admin login should work!' : '❌ Some tests failed - Check issues above'}
-                </div>
-            `;
-
-            checklist.innerHTML = html;
+        function clearAuth() {
+            localStorage.removeItem("adminAuthenticated");
+            localStorage.removeItem("adminLoginTime");
+            localStorage.removeItem("adminUsername");
+            showResult("🧹 Authentication cleared from localStorage", "info");
+            updateAuthStatus();
+            updateLocalStorageContents();
         }
 
-        // Auto-run validation checklist when page loads
-        window.onload = () => {
-            runValidationChecklist();
+        function checkAuthStatus() {
+            updateAuthStatus();
+            updateLocalStorageContents();
+        }
+
+        function updateAuthStatus() {
+            const isAuthenticated = localStorage.getItem("adminAuthenticated") === "true";
+            const loginTime = localStorage.getItem("adminLoginTime");
+            const username = localStorage.getItem("adminUsername");
+            
+            const authStatusDiv = document.getElementById("authStatus");
+            authStatusDiv.innerHTML = `
+                <p><strong>Authenticated:</strong> ${isAuthenticated ? "✅ Yes" : "❌ No"}</p>
+                <p><strong>Username:</strong> ${username || "None"}</p>
+                <p><strong>Login Time:</strong> ${loginTime || "None"}</p>
+                <p><strong>Session Valid:</strong> ${isSessionValid() ? "✅ Yes" : "❌ No"}</p>
+            `;
+        }
+
+        function isSessionValid() {
+            const loginTime = localStorage.getItem("adminLoginTime");
+            if (!loginTime) return false;
+            
+            const loginDate = new Date(loginTime);
+            const now = new Date();
+            const hoursSinceLogin = (now.getTime() - loginDate.getTime()) / (1000 * 60 * 60);
+            
+            return hoursSinceLogin <= 24;
+        }
+
+        function updateLocalStorageContents() {
+            const contents = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key) {
+                    contents[key] = localStorage.getItem(key);
+                }
+            }
+            
+            const contentsDiv = document.getElementById("localStorageContents");
+            contentsDiv.innerHTML = `
+                <pre>${JSON.stringify(contents, null, 2)}</pre>
+            `;
+        }
+
+        function showResult(message, type) {
+            const resultsDiv = document.getElementById("testResults");
+            const resultDiv = document.createElement("div");
+            resultDiv.className = `result ${type}`;
+            resultDiv.textContent = message;
+            resultsDiv.appendChild(resultDiv);
+            
+            // Remove old results after 5 seconds
+            setTimeout(() => {
+                resultDiv.remove();
+            }, 5000);
+        }
+
+        // Initialize the page
+        window.onload = function() {
+            updateAuthStatus();
+            updateLocalStorageContents();
         };
     </script>
 </body>

@@ -65,8 +65,19 @@ const AdminContacts = () => {
       
       // Check if we have a valid client
       if (!serviceClient) {
-        throw new Error('Database client not configured. Please check environment variables.');
+        console.warn('Service client not available, using localStorage fallback');
+        const localContacts = getLocalStorageContacts();
+        setContacts(localContacts);
+        if (localContacts.length > 0) {
+          toast.info(`Loaded ${localContacts.length} contacts from local storage (offline mode)`);
+        } else {
+          toast.info('No contacts found in local storage');
+        }
+        setLoading(false);
+        return;
       }
+      
+      console.log('Attempting to fetch from database...');
       
       let query = serviceClient
         .from('contacts')
@@ -218,6 +229,49 @@ const AdminContacts = () => {
     }
   };
 
+  const handlePopulateSampleContacts = () => {
+    const sampleContacts = [
+      {
+        id: "sample-1",
+        name: "John Smith",
+        phone: "555-123-4567",
+        email: "john@example.com",
+        location: "Houston, TX",
+        details: "Need heavy-duty towing for my semi-truck that broke down on I-45",
+        status: "new" as const,
+        notes: null,
+        created_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+        updated_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+        contacted_at: null,
+        contacted_by: null
+      },
+      {
+        id: "sample-2",
+        name: "Sarah Johnson",
+        phone: "555-987-6543",
+        email: "sarah.j@email.com",
+        location: "Katy, TX",
+        details: "Car accident on Highway 6, need immediate towing service",
+        status: "contacted" as const,
+        notes: "Contacted customer, dispatching truck #3",
+        created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+        updated_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+        contacted_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+        contacted_by: "Admin"
+      }
+    ];
+
+    try {
+      const existingContacts = getLocalStorageContacts();
+      const allContacts = [...sampleContacts, ...existingContacts];
+      saveLocalStorageContacts(allContacts);
+      toast.success(`Added ${sampleContacts.length} sample contacts`);
+      fetchContacts();
+    } catch (error) {
+      toast.error('Failed to add sample contacts');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -249,15 +303,24 @@ const AdminContacts = () => {
           ) : contacts.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <p className="mb-4">No contact submissions found</p>
-              <Button 
-                onClick={handlePopulateTestData}
-                variant="outline"
-                className="text-sm"
-              >
-                Add Test Data for Demo
-              </Button>
+              <div className="space-y-2">
+                <Button 
+                  onClick={handlePopulateTestData}
+                  variant="outline"
+                  className="text-sm mr-2"
+                >
+                  Add Test Data for Demo
+                </Button>
+                <Button 
+                  onClick={handlePopulateSampleContacts}
+                  variant="outline"
+                  className="text-sm"
+                >
+                  Add Sample Contacts
+                </Button>
+              </div>
               <p className="text-xs text-gray-400 mt-2">
-                This will add sample contact submissions for testing
+                These buttons will add sample contact submissions for testing
               </p>
             </div>
           ) : (

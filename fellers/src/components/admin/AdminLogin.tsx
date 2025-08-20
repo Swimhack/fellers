@@ -1,34 +1,35 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import FellersLogo from '@/components/FellersLogo';
-import { supabase } from '@/integrations/supabase/client';
 
-// Fallback credentials if Supabase is not available
-const FALLBACK_USERNAME = "admin";
-const FALLBACK_PASSWORD = "fellers123";
+// Simple admin credentials
+const ADMIN_USERNAME = "admin";
+const ADMIN_PASSWORD = "fellers123";
 
 const AdminLogin = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
 
-  const handleLogin = async (e: React.FormEvent) => {
+
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+
+    console.log("=== ADMIN LOGIN ATTEMPT ===");
+    console.log("Username:", username);
+    console.log("Password:", password);
 
     // Clear any previous authentication
     localStorage.removeItem("adminAuthenticated");
     localStorage.removeItem("adminLoginTime");
     localStorage.removeItem("adminUsername");
-
-    console.log("=== ADMIN LOGIN ATTEMPT ===");
 
     try {
       const trimmedUsername = username.trim();
@@ -36,105 +37,36 @@ const AdminLogin = () => {
       
       // Validate input
       if (!trimmedUsername || !trimmedPassword) {
-        toast({
-          title: "Login failed",
-          description: "Please enter both username and password",
-          variant: "destructive",
-        });
+        toast.error("Please enter both username and password");
         setIsLoading(false);
         return;
       }
 
-      // Test Supabase connection first
-      let supabaseConnected = false;
-      try {
-        const { error: connectionTest } = await supabase
-          .from('gallery_images')
-          .select('id')
-          .limit(1);
-        
-        if (!connectionTest) {
-          supabaseConnected = true;
-          console.log("✅ Supabase connection verified");
-        }
-      } catch (connectionError) {
-        console.log("⚠️ Supabase connection failed:", connectionError);
-      }
-      
-      // Check credentials - for now using hardcoded, but Supabase is connected for other features
-      let authenticated = false;
-      
-      if (trimmedUsername === FALLBACK_USERNAME && trimmedPassword === FALLBACK_PASSWORD) {
-        authenticated = true;
-        
-        // Log successful authentication to a simple log table if possible
-        if (supabaseConnected) {
-          try {
-            // Try to log the login attempt (optional)
-            await supabase
-              .from('admin_login_log')
-              .insert({
-                username: trimmedUsername,
-                login_time: new Date().toISOString(),
-                ip_address: 'unknown',
-                success: true
-              });
-          } catch (logError) {
-            // Logging failed, but don't block login
-            console.log("Could not log login attempt (table might not exist)");
-          }
-        }
-      }
-      
-      if (authenticated) {
+      // Simple credential check
+      if (trimmedUsername === ADMIN_USERNAME && trimmedPassword === ADMIN_PASSWORD) {
         // Set admin authentication in localStorage
         localStorage.setItem("adminAuthenticated", "true");
         localStorage.setItem("adminLoginTime", new Date().toISOString());
         localStorage.setItem("adminUsername", trimmedUsername);
-        localStorage.setItem("supabaseConnected", supabaseConnected.toString());
         
         console.log("✅ ADMIN LOGIN SUCCESSFUL");
-        console.log("Supabase Status:", supabaseConnected ? "Connected" : "Offline");
         
-        toast({
-          title: "Login successful",
-          description: `Welcome to the admin dashboard${supabaseConnected ? "" : " (limited mode)"}`,
-        });
+        toast.success("Login successful! Redirecting to dashboard...");
         
-        navigate("/admin/dashboard");
+        // Small delay to show success message
+        setTimeout(() => {
+          navigate("/admin/dashboard");
+        }, 1000);
       } else {
         console.log("❌ ADMIN LOGIN FAILED - Invalid credentials");
+        console.log("Expected:", ADMIN_USERNAME, ADMIN_PASSWORD);
+        console.log("Received:", trimmedUsername, trimmedPassword);
         
-        // Log failed attempt if possible
-        if (supabaseConnected) {
-          try {
-            await supabase
-              .from('admin_login_log')
-              .insert({
-                username: trimmedUsername,
-                login_time: new Date().toISOString(),
-                ip_address: 'unknown',
-                success: false
-              });
-          } catch (logError) {
-            console.log("Could not log failed login attempt");
-          }
-        }
-        
-        toast({
-          title: "Login failed",
-          description: "Invalid username or password",
-          variant: "destructive",
-        });
+        toast.error("Invalid username or password");
       }
     } catch (error) {
       console.error("❌ LOGIN ERROR:", error);
-      
-      toast({
-        title: "Login error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
